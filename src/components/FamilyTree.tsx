@@ -14,92 +14,7 @@ import { FamilyMember, UserProfile } from "@/types";
 import { db } from "@/lib/firebase";
 import { collection, onSnapshot, doc, setDoc } from "firebase/firestore";
 
-const INITIAL_FAMILY_DATA: FamilyMember[] = [
-  {
-    id: "m-1",
-    name: "Bandhakavi Venkata Subbaraya Sastri",
-    generation: 1,
-    gender: "Male",
-    gotra: "Moudgalya",
-    relation: "Patriarch & Vedic Scholar (1st Gen)",
-    parentId: null,
-    spouse: "Smt. Annapurnamma",
-    bio: "Renowned Vedic Scholar and progenitor of the modern Bandhakavi lineage.",
-    phone: "+91 98765 00001",
-    email: "patriarch.subbaraya@bandhakavi.org",
-    status: "approved"
-  },
-  {
-    id: "m-2",
-    name: "Bandhakavi Ramakrishna Sharma",
-    generation: 2,
-    gender: "Male",
-    gotra: "Moudgalya",
-    relation: "Eldest Son of Subbaraya Sastri",
-    parentId: "m-1",
-    spouse: "Smt. Lakshmi Narasamma",
-    bio: "Promoted Veda Pathashala initiatives and Telugu metric poetry.",
-    phone: "+91 98765 00002",
-    email: "ramakrishna@bandhakavi.org",
-    status: "approved"
-  },
-  {
-    id: "m-3",
-    name: "Bandhakavi Surya Narayana",
-    generation: 2,
-    gender: "Male",
-    gotra: "Moudgalya",
-    relation: "Second Son of Subbaraya Sastri",
-    parentId: "m-1",
-    spouse: "Smt. Satyavathi",
-    bio: "Founding member of Bandhakavi Educational & Charitable Trust.",
-    phone: "+91 98765 00003",
-    email: "suryanarayana@bandhakavi.org",
-    status: "approved"
-  },
-  {
-    id: "m-4",
-    name: "Bandhakavi Dattatreya Sastri",
-    generation: 3,
-    gender: "Male",
-    gotra: "Moudgalya",
-    relation: "Grandson (Son of Ramakrishna) / Lead Admin",
-    parentId: "m-2",
-    spouse: "Smt. Radhadevi",
-    bio: "Lead Digital Archivist and Software Leader for Bandhakavi Family Trust.",
-    phone: "+91 98765 00004",
-    email: "dattu99amma@gmail.com",
-    status: "approved"
-  },
-  {
-    id: "m-5",
-    name: "Bandhakavi Viswanatham",
-    generation: 3,
-    gender: "Male",
-    gotra: "Moudgalya",
-    relation: "Grandson (Son of Surya Narayana)",
-    parentId: "m-3",
-    spouse: "Smt. Suseela",
-    bio: "Managing Trustee, overseeing heritage conservation & youth education.",
-    phone: "+91 98765 00005",
-    email: "viswanatham@bandhakavi.org",
-    status: "approved"
-  },
-  {
-    id: "m-6",
-    name: "Bandhakavi Sai Teja",
-    generation: 4,
-    gender: "Male",
-    gotra: "Moudgalya",
-    relation: "Great-Grandson (Son of Dattatreya)",
-    parentId: "m-4",
-    spouse: "Single",
-    bio: "Tech Enthusiast and contributor to family digital initiatives.",
-    phone: "+91 98765 00006",
-    email: "saiteja@bandhakavi.org",
-    status: "approved"
-  }
-];
+const INITIAL_FAMILY_DATA: FamilyMember[] = [];
 
 interface FamilyTreeProps {
   onSelectMember: (member: FamilyMember) => void;
@@ -265,65 +180,77 @@ export default function FamilyTree({ onSelectMember, currentUser, onOpenAuth }: 
       {/* Tree Render Container */}
       <div className="bg-slate-900/95 dark:bg-slate-950 text-white rounded-3xl p-6 sm:p-10 border border-slate-800 shadow-xl overflow-x-auto min-h-[500px]">
         <div className="min-w-[700px] flex flex-col items-center space-y-12 py-4">
-          {Object.keys(generationGroups)
-            .sort((a, b) => Number(a) - Number(b))
-            .map((genKey) => (
-              <div key={genKey} className="w-full flex flex-col items-center">
-                {/* Generation Label */}
-                <div className="mb-6 flex items-center space-x-2 px-4 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-bold uppercase tracking-widest">
-                  <Crown className="w-3.5 h-3.5" />
-                  <span>Generation {genKey}</span>
-                </div>
-
-                {/* Members Cards Row */}
-                <div className="flex flex-wrap justify-center gap-6 sm:gap-8">
-                  {generationGroups[Number(genKey)].map((member) => (
-                    <div
-                      key={member.id}
-                      onClick={() => onSelectMember(member)}
-                      className="group relative bg-slate-800/90 hover:bg-slate-800 border border-slate-700 hover:border-amber-500/80 rounded-2xl p-5 w-64 cursor-pointer transition-all duration-300 transform hover:-translate-y-1 hover:shadow-xl hover:shadow-amber-500/10"
-                    >
-                      <div className="flex items-start justify-between">
-                        <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-600 to-orange-500 flex items-center justify-center text-white font-bold text-base shadow-sm">
-                          {member.name.charAt(0)}
-                        </div>
-                        <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-700 text-amber-300">
-                          Gotra: {member.gotra || "Moudgalya"}
-                        </span>
-                      </div>
-
-                      <div className="mt-3">
-                        <h4 className="font-bold text-sm text-slate-100 group-hover:text-amber-300 transition line-clamp-1">
-                          {member.name}
-                        </h4>
-                        <p className="text-xs text-amber-400/90 font-medium mt-0.5 line-clamp-1">
-                          {member.relation}
-                        </p>
-                      </div>
-
-                      {member.spouse && (
-                        <div className="mt-3 pt-3 border-t border-slate-700/60 flex items-center justify-between text-[11px] text-slate-400">
-                          <span>Spouse:</span>
-                          <span className="font-medium text-slate-300">{member.spouse}</span>
-                        </div>
-                      )}
-
-                      <div className="mt-2 text-[10px] text-slate-500 flex items-center justify-between">
-                        <span>ID: #{member.id}</span>
-                        <span className="text-amber-400/80 flex items-center gap-1 group-hover:underline">
-                          View profile <ChevronRight className="w-3 h-3" />
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Vertical Connector Line */}
-                {Number(genKey) < Object.keys(generationGroups).length && (
-                  <div className="w-0.5 h-10 bg-gradient-to-b from-amber-500/50 to-amber-500/10 my-4" />
-                )}
+          {Object.keys(generationGroups).length === 0 ? (
+            <div className="text-center py-20 space-y-4">
+              <div className="w-16 h-16 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 flex items-center justify-center mx-auto">
+                <Sparkles className="w-8 h-8" />
               </div>
-            ))}
+              <h3 className="text-xl font-bold text-slate-100">No Family Lineage Members Added Yet</h3>
+              <p className="text-slate-400 text-xs sm:text-sm max-w-md mx-auto leading-relaxed">
+                The interactive family tree is ready. Log in to add the first lineage ancestor or family member to the tree.
+              </p>
+            </div>
+          ) : (
+            Object.keys(generationGroups)
+              .sort((a, b) => Number(a) - Number(b))
+              .map((genKey) => (
+                <div key={genKey} className="w-full flex flex-col items-center">
+                  {/* Generation Label */}
+                  <div className="mb-6 flex items-center space-x-2 px-4 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-bold uppercase tracking-widest">
+                    <Crown className="w-3.5 h-3.5" />
+                    <span>Generation {genKey}</span>
+                  </div>
+
+                  {/* Members Cards Row */}
+                  <div className="flex flex-wrap justify-center gap-6 sm:gap-8">
+                    {generationGroups[Number(genKey)].map((member) => (
+                      <div
+                        key={member.id}
+                        onClick={() => onSelectMember(member)}
+                        className="group relative bg-slate-800/90 hover:bg-slate-800 border border-slate-700 hover:border-amber-500/80 rounded-2xl p-5 w-64 cursor-pointer transition-all duration-300 transform hover:-translate-y-1 hover:shadow-xl hover:shadow-amber-500/10"
+                      >
+                        <div className="flex items-start justify-between">
+                          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-600 to-orange-500 flex items-center justify-center text-white font-bold text-base shadow-sm">
+                            {member.name.charAt(0)}
+                          </div>
+                          <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-700 text-amber-300">
+                            Gotra: {member.gotra || "Moudgalya"}
+                          </span>
+                        </div>
+
+                        <div className="mt-3">
+                          <h4 className="font-bold text-sm text-slate-100 group-hover:text-amber-300 transition line-clamp-1">
+                            {member.name}
+                          </h4>
+                          <p className="text-xs text-amber-400/90 font-medium mt-0.5 line-clamp-1">
+                            {member.relation}
+                          </p>
+                        </div>
+
+                        {member.spouse && (
+                          <div className="mt-3 pt-3 border-t border-slate-700/60 flex items-center justify-between text-[11px] text-slate-400">
+                            <span>Spouse:</span>
+                            <span className="font-medium text-slate-300">{member.spouse}</span>
+                          </div>
+                        )}
+
+                        <div className="mt-2 text-[10px] text-slate-500 flex items-center justify-between">
+                          <span>ID: #{member.id}</span>
+                          <span className="text-amber-400/80 flex items-center gap-1 group-hover:underline">
+                            View profile <ChevronRight className="w-3 h-3" />
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Vertical Connector Line */}
+                  {Number(genKey) < Object.keys(generationGroups).length && (
+                    <div className="w-0.5 h-10 bg-gradient-to-b from-amber-500/50 to-amber-500/10 my-4" />
+                  )}
+                </div>
+              ))
+          )}
         </div>
       </div>
 

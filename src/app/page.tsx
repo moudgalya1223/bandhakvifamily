@@ -21,21 +21,9 @@ const INITIAL_REGISTERED_USERS: UserProfile[] = [
     gotra: "Moudgalya",
     email: "dattu99amma@gmail.com",
     phone: "+91 98765 00004",
-    relation: "Grandson of Ramakrishna Sharma / Master Admin",
+    relation: "Master Admin",
     status: "approved",
     isAdmin: true,
-    createdAt: new Date().toISOString()
-  },
-  {
-    name: "Bandhakavi Lakshmi Narayana",
-    age: "42",
-    gender: "Male",
-    gotra: "Moudgalya",
-    email: "lakshminarayana@gmail.com",
-    phone: "+91 99887 76655",
-    relation: "Grandson of Subbaraya Sastri",
-    status: "pending",
-    isAdmin: false,
     createdAt: new Date().toISOString()
   }
 ];

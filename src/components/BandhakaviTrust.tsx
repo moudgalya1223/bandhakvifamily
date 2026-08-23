@@ -97,37 +97,6 @@ export default function BandhakaviTrust() {
               </p>
             </div>
           </div>
-
-          {/* Member 2 */}
-          <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 flex items-center space-x-3">
-            <div className="w-10 h-10 rounded-full bg-slate-700 text-white font-bold flex items-center justify-center text-sm">
-              BV
-            </div>
-            <div>
-              <h5 className="font-bold text-slate-900 dark:text-slate-100 text-sm">Bandhakavi Viswanatham</h5>
-              <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">Managing Trustee</p>
-              <p className="text-[10px] text-slate-500 dark:text-slate-400 flex items-center space-x-1 mt-0.5">
-                <Mail className="w-3 h-3 text-slate-500 dark:text-slate-400" />
-                <span>viswanatham@bandhakavi.org</span>
-              </p>
-            </div>
-          </div>
-
-          {/* Member 3 */}
-          <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 flex items-center space-x-3">
-            <div className="w-10 h-10 rounded-full bg-slate-700 text-white font-bold flex items-center justify-center text-sm">
-              BS
-            </div>
-            <div>
-              <h5 className="font-bold text-slate-900 dark:text-slate-100 text-sm">Bandhakavi Surya Narayana</h5>
-              <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">Honorary Patron</p>
-              <p className="text-[10px] text-slate-500 dark:text-slate-400 flex items-center space-x-1 mt-0.5">
-                <Mail className="w-3 h-3 text-slate-500 dark:text-slate-400" />
-                <span>suryanarayana@bandhakavi.org</span>
-              </p>
-            </div>
-          </div>
-
         </div>
 
         <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-dashed border-slate-300 dark:border-slate-700 text-center text-xs text-slate-500 dark:text-slate-400">
