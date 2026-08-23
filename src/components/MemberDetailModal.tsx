@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { XCircle, Trash2, AlertCircle, Send, CheckCircle2 } from "lucide-react";
+import { XCircle, Trash2, AlertCircle, Send, CheckCircle2, Lock } from "lucide-react";
 import { FamilyMember, UserProfile } from "@/types";
 
 interface MemberDetailModalProps {
@@ -8,6 +8,7 @@ interface MemberDetailModalProps {
   currentUser?: UserProfile | null;
   onDeleteMember?: (memberId: string) => void;
   onRequestDelete?: (member: FamilyMember, reason: string) => void;
+  onOpenAuth?: (mode: "login" | "signup" | "pending" | "admin") => void;
 }
 
 export default function MemberDetailModal({
@@ -15,7 +16,8 @@ export default function MemberDetailModal({
   onClose,
   currentUser,
   onDeleteMember,
-  onRequestDelete
+  onRequestDelete,
+  onOpenAuth
 }: MemberDetailModalProps) {
   const [showRequestForm, setShowRequestForm] = useState(false);
   const [deleteReason, setDeleteReason] = useState("");
@@ -165,7 +167,19 @@ export default function MemberDetailModal({
                   <span>Request Deletion</span>
                 </button>
               )
-            ) : null}
+            ) : (
+              <button
+                type="button"
+                onClick={() => {
+                  onClose();
+                  if (onOpenAuth) onOpenAuth("login");
+                }}
+                className="px-3.5 py-2 bg-amber-50 dark:bg-slate-800 hover:bg-amber-100 dark:hover:bg-slate-700 text-amber-900 dark:text-amber-300 border border-amber-200 dark:border-slate-700 text-xs font-bold rounded-xl flex items-center space-x-1.5 transition shadow-sm"
+              >
+                <Lock className="w-3.5 h-3.5 text-amber-600" />
+                <span>Log In to Request Deletion</span>
+              </button>
+            )}
           </div>
 
           <button

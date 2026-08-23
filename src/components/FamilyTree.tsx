@@ -104,13 +104,27 @@ export default function FamilyTree({ onSelectMember, currentUser, onOpenAuth }: 
     try {
       const unsub = onSnapshot(
         collection(db, "family_members"),
-        (snapshot) => {
+        async (snapshot) => {
           if (!snapshot.empty) {
             const list: FamilyMember[] = [];
             snapshot.forEach((docSnap) => {
               list.push({ id: docSnap.id, ...docSnap.data() } as FamilyMember);
             });
             setFamilyMembers(list);
+          } else {
+            const hasBeenSeeded = typeof window !== "undefined" && localStorage.getItem("bk_tree_seeded_v1");
+            if (!hasBeenSeeded) {
+              if (typeof window !== "undefined") localStorage.setItem("bk_tree_seeded_v1", "true");
+              for (const ancestor of INITIAL_FAMILY_DATA) {
+                try {
+                  await setDoc(doc(db, "family_members", ancestor.id), ancestor);
+                } catch (e) {
+                  console.log("Seeding error:", e);
+                }
+              }
+            } else {
+              setFamilyMembers([]);
+            }
           }
         },
         (err) => console.log("Firestore tree listener info:", err)

@@ -188,6 +188,10 @@ export default function Home() {
             console.log("Request delete error:", err);
           }
         }}
+        onOpenAuth={(mode) => {
+          setAuthModalMode(mode);
+          setIsAuthModalOpen(true);
+        }}
       />
 
       {/* Footer */}
