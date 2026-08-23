@@ -9,7 +9,7 @@ import { doc, setDoc } from "firebase/firestore";
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
-  initialMode: "login" | "signup" | "pending";
+  initialMode: "login" | "signup" | "pending" | "admin";
   onLoginSuccess: (user: UserProfile) => void;
   registeredUsers: UserProfile[];
   setRegisteredUsers: React.Dispatch<React.SetStateAction<UserProfile[]>>;
@@ -25,7 +25,7 @@ export default function AuthModal({
   setRegisteredUsers,
   addMailLog
 }: AuthModalProps) {
-  const [authMode, setAuthMode] = useState<"login" | "signup" | "pending">(initialMode);
+  const [authMode, setAuthMode] = useState<"login" | "signup" | "pending" | "admin">(initialMode);
   
   // Sign up form states
   const [signupForm, setSignupForm] = useState({
@@ -42,8 +42,16 @@ export default function AuthModal({
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   
   // Login form state
-  const [loginEmail, setLoginEmail] = useState("");
+  const [loginEmail, setLoginEmail] = useState(initialMode === "admin" ? ADMIN_EMAIL : "");
   const [modalNotification, setModalNotification] = useState<{ type: "error" | "success" | "warning" | "info"; msg: string } | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  React.useEffect(() => {
+    setAuthMode(initialMode);
+    if (initialMode === "admin") {
+      setLoginEmail(ADMIN_EMAIL);
+    }
+  }, [initialMode, isOpen]);
 
   if (!isOpen) return null;
 
@@ -108,8 +116,16 @@ export default function AuthModal({
   const handleSignUpSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setModalNotification(null);
+    setIsSubmitting(true);
 
-    if (!validateSignupForm()) return;
+    if (!validateSignupForm()) {
+      setModalNotification({
+        type: "error",
+        msg: "Form submission failed. Please correct the highlighted errors below."
+      });
+      setIsSubmitting(false);
+      return;
+    }
 
     const userEmail = signupForm.email.trim().toLowerCase();
     const isMasterAdmin = userEmail === ADMIN_EMAIL.toLowerCase();
@@ -130,8 +146,12 @@ export default function AuthModal({
     try {
       const docId = userEmail.replace(/[@.]/g, "_");
       await setDoc(doc(db, "users", docId), newUserRecord);
-    } catch (err) {
+    } catch (err: any) {
       console.log("Firestore write info:", err);
+      setModalNotification({
+        type: "error",
+        msg: `Failed to save registration: ${err?.message || "Database connection issue."}`
+      });
     }
 
     setRegisteredUsers((prev) => [...prev.filter((u) => u.email !== userEmail), newUserRecord]);
@@ -139,7 +159,7 @@ export default function AuthModal({
     const userMailLog = {
       to: userEmail,
       subject: "Bandhakavi Family Portal - Registration Submitted",
-      body: `Dear ${signupForm.name},\n\nThank you for registering with the Bandhakavi Family Portal.\nYour registration details have been submitted to the Admin (${ADMIN_EMAIL}) for verification.\n\nStatus: Pending Admin Approval\n\nYou will be notified once approved.`,
+      body: `Dear ${signupForm.name},\n\nThank you for registering with the Bandhakavi Family Portal.\nYour registration details have been submitted to the Admin for verification.\n\nStatus: Pending Admin Approval\n\nYou will be notified once approved.`,
       timestamp: new Date().toISOString()
     };
 
@@ -153,29 +173,38 @@ export default function AuthModal({
     addMailLog(userMailLog);
     addMailLog(adminMailLog);
 
+    // Send real confirmation emails to applicant & admin via SMTP API
     try {
-      fetch("/api/send-email", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          to: userEmail,
-          subject: userMailLog.subject,
-          body: userMailLog.body,
-          type: "USER_REGISTRATION"
+      await Promise.all([
+        fetch("/api/send-email", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            to: userEmail,
+            subject: userMailLog.subject,
+            body: userMailLog.body,
+            type: "USER_REGISTRATION"
+          })
+        }),
+        fetch("/api/send-email", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            to: ADMIN_EMAIL,
+            subject: adminMailLog.subject,
+            body: adminMailLog.body,
+            type: "ADMIN_NOTIFICATION"
+          })
         })
-      });
-      fetch("/api/send-email", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          to: ADMIN_EMAIL,
-          subject: adminMailLog.subject,
-          body: adminMailLog.body,
-          type: "ADMIN_NOTIFICATION"
-        })
-      });
-    } catch (err) {
+      ]);
+    } catch (err: any) {
       console.log("API email trigger:", err);
+      setModalNotification({
+        type: "warning",
+        msg: "Registration saved, but email notification service experienced a delay."
+      });
+    } finally {
+      setIsSubmitting(false);
     }
 
     if (isMasterAdmin) {
@@ -215,7 +244,9 @@ export default function AuthModal({
       return;
     }
 
-    const matchedUser = registeredUsers.find((u) => u.email.toLowerCase() === testEmail);
+    const matchedUser = registeredUsers.find(
+      (u) => u?.email && typeof u.email === "string" && u.email.toLowerCase() === testEmail
+    );
 
     if (!matchedUser) {
       setModalNotification({
@@ -228,7 +259,7 @@ export default function AuthModal({
     if (matchedUser.status === "pending") {
       setModalNotification({
         type: "warning",
-        msg: `Account Pending Approval! Verification emails have been sent to ${testEmail} and Admin (${ADMIN_EMAIL}). You cannot log in until approved.`
+        msg: `Account Pending Approval! Verification emails have been sent to ${testEmail} and the Master Admin. You cannot log in until approved.`
       });
       setAuthMode("pending");
       return;
@@ -247,84 +278,158 @@ export default function AuthModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 rounded-3xl max-w-lg w-full p-6 sm:p-8 border border-amber-200 dark:border-slate-800 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+    <div
+      onClick={onClose}
+      className="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4"
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 rounded-3xl max-w-lg w-full border border-amber-200 dark:border-slate-800 shadow-2xl relative max-h-[90vh] flex flex-col overflow-hidden"
+      >
         
+        {/* Sticky Fixed Close Button */}
         <button
           onClick={onClose}
-          className="absolute right-5 top-5 p-2 rounded-full text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"
+          type="button"
+          className="absolute right-4 top-4 z-30 p-2 rounded-full text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm shadow-sm"
+          title="Close window"
         >
           <XCircle className="w-6 h-6" />
         </button>
 
-        {/* Header */}
-        <div className="text-center space-y-2 mb-6">
-          <div className="w-12 h-12 rounded-2xl bg-amber-600 text-white flex items-center justify-center mx-auto shadow-md">
-            <Trees className="w-6 h-6" />
-          </div>
-          <h3 className="text-2xl font-black text-slate-900 dark:text-slate-100">
-            {authMode === "login"
-              ? "Bandhakavi Family Login"
-              : authMode === "signup"
-              ? "Register Relation Details"
-              : "Registration Submitted"}
-          </h3>
-          <p className="text-xs text-slate-500 dark:text-slate-400">
-            {authMode === "login"
-              ? "Enter your approved email ID to access the tree and portal"
-              : authMode === "signup"
-              ? "All fields are mandatory. Details will be sent to Admin for approval."
-              : `Awaiting approval from Admin (${ADMIN_EMAIL})`}
-          </p>
-        </div>
+        <div className="p-6 sm:p-8 overflow-y-auto">
 
-        {/* Modal Notification */}
-        {modalNotification && (
-          <div className={`mb-4 p-3 rounded-xl text-xs font-semibold flex items-center space-x-2 ${
-            modalNotification.type === "error" ? "bg-rose-100 dark:bg-rose-950 text-rose-800 dark:text-rose-300 border border-rose-200 dark:border-rose-800" :
-            modalNotification.type === "warning" ? "bg-amber-100 dark:bg-amber-950 text-amber-900 dark:text-amber-300 border border-amber-200 dark:border-amber-800" :
-            "bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800"
-          }`}>
-            <AlertCircle className="w-4 h-4 flex-shrink-0" />
-            <span>{modalNotification.msg}</span>
-          </div>
-        )}
-
-        {/* LOGIN FORM */}
-        {authMode === "login" && (
-          <form onSubmit={handleLoginSubmit} className="space-y-4">
-            <div>
-              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">
-                Mail ID *
-              </label>
-              <input
-                type="email"
-                value={loginEmail}
-                onChange={(e) => setLoginEmail(e.target.value)}
-                required
-                placeholder="e.g. dattu99amm@gmail.com"
-                className="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 text-sm focus:ring-2 focus:ring-amber-500 outline-none"
+          {/* Header */}
+          <div className="text-center space-y-2 mb-6">
+            <div className="w-14 h-14 rounded-2xl overflow-hidden border-2 border-amber-400 shadow-md mx-auto mb-2 bg-amber-900 flex-shrink-0">
+              <img
+                src="/rishi_logo.jpg"
+                alt="Moudgalya Rishi Logo"
+                className="w-full h-full object-cover object-top"
               />
             </div>
+            <h3 className="text-2xl font-black text-slate-900 dark:text-slate-100">
+              {authMode === "admin"
+                ? "Master Admin Login"
+                : authMode === "login"
+                ? "Bandhakavi Family Login"
+                : authMode === "signup"
+                ? "Register Relation Details"
+                : "Registration Submitted"}
+            </h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400">
+              {authMode === "admin"
+                ? "Sign in with Master Admin credentials to access in-app approvals"
+                : authMode === "login"
+                ? "Enter your approved email ID to access the tree and portal"
+                : authMode === "signup"
+                ? "All fields are mandatory. Details will be sent to Admin for approval."
+                : "Awaiting approval from Master Admin"}
+            </p>
+          </div>
+
+          {/* Modal Notification */}
+          {modalNotification && (
+            <div className={`mb-4 p-3 rounded-xl text-xs font-semibold flex items-center space-x-2 ${
+              modalNotification.type === "error" ? "bg-rose-100 dark:bg-rose-950 text-rose-800 dark:text-rose-300 border border-rose-200 dark:border-rose-800" :
+              modalNotification.type === "warning" ? "bg-amber-100 dark:bg-amber-950 text-amber-900 dark:text-amber-300 border border-amber-200 dark:border-amber-800" :
+              "bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800"
+            }`}>
+              <AlertCircle className="w-4 h-4 flex-shrink-0" />
+              <span>{modalNotification.msg}</span>
+            </div>
+          )}
+
+          {/* LOGIN FORM (Standard or Admin Mode) */}
+          {(authMode === "login" || authMode === "admin") && (
+            <form onSubmit={handleLoginSubmit} className="space-y-4">
+              <div>
+                <div className="flex justify-between items-center mb-1">
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
+                    Mail ID *
+                  </label>
+                  {authMode !== "admin" && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setAuthMode("admin");
+                        setLoginEmail(ADMIN_EMAIL);
+                      }}
+                      className="text-[11px] font-bold text-purple-600 dark:text-purple-400 hover:underline"
+                    >
+                      Switch to Admin Login
+                    </button>
+                  )}
+                </div>
+                <input
+                  type="email"
+                  value={loginEmail}
+                  onChange={(e) => setLoginEmail(e.target.value)}
+                  required
+                  placeholder="e.g. user@gmail.com"
+                  className={`w-full px-4 py-3 rounded-xl border bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 text-sm outline-none transition ${
+                    authMode === "admin"
+                      ? "border-purple-400 focus:ring-2 focus:ring-purple-500"
+                      : "border-slate-300 dark:border-slate-700 focus:ring-2 focus:ring-amber-500"
+                  }`}
+                />
+              </div>
+
+              {authMode === "admin" && (
+                <div className="bg-purple-50 dark:bg-purple-950/60 p-3 rounded-xl border border-purple-200 dark:border-purple-800 text-[11px] text-purple-900 dark:text-purple-200 leading-relaxed">
+                  <span className="font-bold">Master Admin Sign-In:</span> Enter your admin email credentials to sign in and open the Admin Approvals Dashboard.
+                </div>
+              )}
 
             <button
               type="submit"
-              className="w-full py-3 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-2xl text-sm shadow-md transition"
+              className={`w-full py-3 text-white font-bold rounded-2xl text-sm shadow-md transition ${
+                authMode === "admin"
+                  ? "bg-purple-700 hover:bg-purple-800 shadow-purple-700/20"
+                  : "bg-amber-600 hover:bg-amber-700 shadow-amber-600/20"
+              }`}
             >
-              Log In
+              {authMode === "admin" ? "Sign In as Master Admin" : "Log In"}
             </button>
 
-            <div className="text-center pt-2">
-              <button
-                type="button"
-                onClick={() => {
-                  setModalNotification(null);
-                  setAuthMode("signup");
-                }}
-                className="text-xs text-amber-800 dark:text-amber-400 font-bold hover:underline"
-              >
-                Don't have an approved account? Sign Up
-              </button>
+            <div className="flex justify-between items-center pt-2 text-xs font-bold">
+              {authMode === "admin" ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setModalNotification(null);
+                    setAuthMode("login");
+                    setLoginEmail("");
+                  }}
+                  className="text-slate-600 dark:text-slate-400 hover:underline"
+                >
+                  Standard Member Login
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setModalNotification(null);
+                    setAuthMode("signup");
+                  }}
+                  className="text-amber-800 dark:text-amber-400 hover:underline"
+                >
+                  Don't have an approved account? Sign Up
+                </button>
+              )}
+
+              {authMode !== "admin" && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAuthMode("admin");
+                    setLoginEmail(ADMIN_EMAIL);
+                  }}
+                  className="text-purple-700 dark:text-purple-400 hover:underline"
+                >
+                  Admin Approvals
+                </button>
+              )}
             </div>
           </form>
         )}
@@ -462,14 +567,22 @@ export default function AuthModal({
 
             <div className="bg-amber-50 dark:bg-amber-950/60 p-3 rounded-xl border border-amber-200 dark:border-amber-800 text-[11px] text-amber-900 dark:text-amber-300 leading-relaxed">
               <p className="font-semibold">Email Approval Dispatch:</p>
-              Upon submission, notification emails will be sent to your Mail ID and to Admin (<strong>{ADMIN_EMAIL}</strong>).
+              Upon submission, notification emails will be dispatched to your Mail ID and to the Family Administrator for verification.
             </div>
 
             <button
               type="submit"
-              className="w-full py-3 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white font-bold rounded-2xl text-sm shadow-md transition"
+              disabled={isSubmitting}
+              className="w-full py-3 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white font-bold rounded-2xl text-sm shadow-md transition flex items-center justify-center space-x-2 disabled:opacity-60"
             >
-              Submit Registration Request
+              {isSubmitting ? (
+                <>
+                  <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  <span>Submitting & Sending Mailers...</span>
+                </>
+              ) : (
+                <span>Submit Registration Request</span>
+              )}
             </button>
 
             <div className="text-center">
@@ -495,19 +608,20 @@ export default function AuthModal({
             </div>
             <h4 className="text-lg font-bold text-slate-900 dark:text-slate-100">Awaiting Admin Approval</h4>
             <p className="text-slate-600 dark:text-slate-300 text-xs leading-relaxed max-w-sm mx-auto">
-              An email notification has been dispatched to your Mail ID and to the Master Admin (<strong>{ADMIN_EMAIL}</strong>). You will be able to log in once the admin approves your request.
+              An email notification has been dispatched to your Mail ID and to the Master Admin for verification. You will be able to log in once the admin approves your request.
             </p>
             <div className="pt-2">
               <button
                 onClick={onClose}
                 className="px-6 py-2 bg-amber-600 text-white text-xs font-bold rounded-xl hover:bg-amber-700 transition"
               >
-                Close
+                Close Window
               </button>
             </div>
           </div>
         )}
 
+        </div>
       </div>
     </div>
   );

@@ -7,9 +7,10 @@ import {
   Plus,
   Crown,
   ChevronRight,
-  XCircle
+  XCircle,
+  Lock
 } from "lucide-react";
-import { FamilyMember } from "@/types";
+import { FamilyMember, UserProfile } from "@/types";
 import { db } from "@/lib/firebase";
 import { collection, onSnapshot, doc, setDoc } from "firebase/firestore";
 
@@ -67,7 +68,7 @@ const INITIAL_FAMILY_DATA: FamilyMember[] = [
     spouse: "Smt. Radhadevi",
     bio: "Lead Digital Archivist and Software Leader for Bandhakavi Family Trust.",
     phone: "+91 98765 00004",
-    email: "dattu99amm@gmail.com",
+    email: "dattu99amma@gmail.com",
     status: "approved"
   },
   {
@@ -102,9 +103,11 @@ const INITIAL_FAMILY_DATA: FamilyMember[] = [
 
 interface FamilyTreeProps {
   onSelectMember: (member: FamilyMember) => void;
+  currentUser?: UserProfile | null;
+  onOpenAuth?: (mode: "login" | "signup" | "pending" | "admin") => void;
 }
 
-export default function FamilyTree({ onSelectMember }: FamilyTreeProps) {
+export default function FamilyTree({ onSelectMember, currentUser, onOpenAuth }: FamilyTreeProps) {
   const [familyMembers, setFamilyMembers] = useState<FamilyMember[]>(INITIAL_FAMILY_DATA);
   const [searchQuery, setSearchQuery] = useState("");
   const [showAddModal, setShowAddModal] = useState(false);
@@ -239,11 +242,22 @@ export default function FamilyTree({ onSelectMember }: FamilyTreeProps) {
           </div>
 
           <button
-            onClick={() => setShowAddModal(true)}
-            className="flex items-center justify-center space-x-2 px-4 py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-semibold rounded-xl text-sm shadow-md transition"
+            onClick={() => {
+              if (!currentUser) {
+                if (onOpenAuth) onOpenAuth("login");
+              } else {
+                setShowAddModal(true);
+              }
+            }}
+            title={!currentUser ? "Must be logged in to add family hierarchy members" : "Add Lineage Member"}
+            className={`flex items-center justify-center space-x-2 px-4 py-2.5 font-semibold rounded-xl text-sm transition shadow-md ${
+              !currentUser
+                ? "bg-slate-200 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-300 dark:border-slate-700 hover:bg-slate-300 dark:hover:bg-slate-700 opacity-80"
+                : "bg-amber-600 hover:bg-amber-700 text-white"
+            }`}
           >
-            <Plus className="w-4 h-4" />
-            <span>Add Lineage Member</span>
+            {!currentUser ? <Lock className="w-4 h-4 text-slate-500 dark:text-slate-400" /> : <Plus className="w-4 h-4" />}
+            <span>{!currentUser ? "Log In to Add Member" : "Add Lineage Member"}</span>
           </button>
         </div>
       </div>

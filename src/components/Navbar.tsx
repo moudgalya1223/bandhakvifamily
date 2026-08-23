@@ -19,7 +19,7 @@ interface NavbarProps {
   activeTab: string;
   setActiveTab: (tab: string) => void;
   currentUser: UserProfile | null;
-  onOpenAuth: (mode: "login" | "signup") => void;
+  onOpenAuth: (mode: "login" | "signup" | "admin") => void;
   onLogout: () => void;
   pendingUsersCount: number;
   isDarkMode: boolean;
@@ -49,8 +49,12 @@ export default function Navbar({
           className="flex items-center space-x-3 cursor-pointer"
           onClick={() => setActiveTab("tree")}
         >
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-amber-600 via-orange-500 to-amber-400 flex items-center justify-center text-white shadow-md shadow-amber-500/20">
-            <Trees className="w-7 h-7" />
+          <div className="w-12 h-12 rounded-2xl overflow-hidden border-2 border-amber-400/80 shadow-md shadow-amber-500/20 bg-amber-900 flex-shrink-0">
+            <img
+              src="/rishi_logo.jpg"
+              alt="Moudgalya Rishi Logo"
+              className="w-full h-full object-cover object-top"
+            />
           </div>
           <div>
             <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-amber-500 via-orange-400 to-amber-300 bg-clip-text text-transparent">
@@ -122,24 +126,26 @@ export default function Navbar({
             <span>Donate</span>
           </button>
 
-          <button
-            onClick={() => setActiveTab("admin")}
-            className={`flex items-center space-x-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
-              activeTab === "admin"
-                ? "bg-purple-700 text-white shadow-md shadow-purple-700/30"
-                : isDarkMode
-                ? "text-purple-300 bg-purple-950/60 hover:bg-purple-900/80 border border-purple-800/60"
-                : "text-purple-700 bg-purple-50 hover:bg-purple-100"
-            }`}
-          >
-            <ShieldCheck className="w-4 h-4" />
-            <span>Admin Approvals</span>
-            {pendingUsersCount > 0 && (
-              <span className="w-5 h-5 rounded-full bg-red-500 text-white text-xs font-bold flex items-center justify-center animate-pulse">
-                {pendingUsersCount}
-              </span>
-            )}
-          </button>
+          {currentUser?.isAdmin && (
+            <button
+              onClick={() => setActiveTab("admin")}
+              className={`flex items-center space-x-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                activeTab === "admin"
+                  ? "bg-purple-700 text-white shadow-md shadow-purple-700/30"
+                  : isDarkMode
+                  ? "text-purple-300 bg-purple-950/60 hover:bg-purple-900/80 border border-purple-800/60"
+                  : "text-purple-700 bg-purple-50 hover:bg-purple-100"
+              }`}
+            >
+              <ShieldCheck className="w-4 h-4" />
+              <span>Admin Approvals</span>
+              {pendingUsersCount > 0 && (
+                <span className="w-5 h-5 rounded-full bg-red-500 text-white text-xs font-bold flex items-center justify-center animate-pulse">
+                  {pendingUsersCount}
+                </span>
+              )}
+            </button>
+          )}
         </nav>
 
         {/* Theme Toggle & Auth Buttons */}
@@ -193,6 +199,18 @@ export default function Navbar({
             </div>
           ) : (
             <div className="flex items-center space-x-2">
+              <button
+                onClick={() => onOpenAuth("admin")}
+                className={`flex items-center space-x-1.5 px-3 py-2 rounded-xl text-xs sm:text-sm font-semibold transition ${
+                  isDarkMode
+                    ? "bg-purple-950/80 text-purple-200 hover:bg-purple-900 border border-purple-800"
+                    : "bg-purple-100 text-purple-900 hover:bg-purple-200 border border-purple-200"
+                }`}
+                title="Master Admin Login & Approvals"
+              >
+                <ShieldCheck className="w-4 h-4 text-purple-400" />
+                <span>Admin Login</span>
+              </button>
               <button
                 onClick={() => onOpenAuth("login")}
                 className={`flex items-center space-x-1.5 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition ${
@@ -260,16 +278,18 @@ export default function Navbar({
         >
           Donate
         </button>
-        <button
-          onClick={() => setActiveTab("admin")}
-          className={`whitespace-nowrap px-3 py-1.5 rounded-lg ${
-            activeTab === "admin"
-              ? "bg-purple-700 text-white font-bold"
-              : isDarkMode ? "text-purple-300 bg-purple-950" : "text-purple-800 bg-purple-100"
-          }`}
-        >
-          Admin ({pendingUsersCount})
-        </button>
+        {currentUser?.isAdmin && (
+          <button
+            onClick={() => setActiveTab("admin")}
+            className={`whitespace-nowrap px-3 py-1.5 rounded-lg ${
+              activeTab === "admin"
+                ? "bg-purple-700 text-white font-bold"
+                : isDarkMode ? "text-purple-300 bg-purple-950" : "text-purple-800 bg-purple-100"
+            }`}
+          >
+            Admin ({pendingUsersCount})
+          </button>
+        )}
       </div>
     </header>
   );

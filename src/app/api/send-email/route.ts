@@ -13,10 +13,12 @@ export async function POST(req: Request) {
     }
 
     console.log(`[EMAIL DISPATCH] To: ${to} | Subject: ${subject}`);
-    console.log(`[EMAIL BODY]:\n${body}`);
 
-    // If SMTP environment credentials exist, send real email via Nodemailer
+    let info: any = null;
+    let previewUrl: string | null = null;
+
     if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
+      // Production or Custom SMTP Server Delivery
       const transporter = nodemailer.createTransport({
         host: process.env.SMTP_HOST,
         port: Number(process.env.SMTP_PORT) || 587,
@@ -27,18 +29,49 @@ export async function POST(req: Request) {
         },
       });
 
-      await transporter.sendMail({
-        from: `"Bandhakavi Family App" <${process.env.SMTP_USER}>`,
+      info = await transporter.sendMail({
+        from: `"Bandhakavi Family Portal" <${process.env.SMTP_USER}>`,
         to,
         subject,
         text: body,
       });
+      console.log(`[REAL SMTP DELIVERED] To: ${to} | MessageId: ${info.messageId}`);
+    } else {
+      // Real Test SMTP Delivery Fallback via Ethereal Mail
+      try {
+        const testAccount = await nodemailer.createTestAccount();
+        const transporter = nodemailer.createTransport({
+          host: "smtp.ethereal.email",
+          port: 587,
+          secure: false,
+          auth: {
+            user: testAccount.user,
+            pass: testAccount.pass,
+          },
+        });
+
+        info = await transporter.sendMail({
+          from: `"Bandhakavi Family Portal" <${testAccount.user}>`,
+          to,
+          subject,
+          text: body,
+        });
+
+        previewUrl = nodemailer.getTestMessageUrl(info) || null;
+        console.log(`[TEST SMTP DELIVERED] To: ${to} | MessageId: ${info.messageId}`);
+        if (previewUrl) {
+          console.log(`[REAL EMAIL PREVIEW LINK]: ${previewUrl}`);
+        }
+      } catch (testErr) {
+        console.error("Test SMTP fallback warning:", testErr);
+      }
     }
 
     return NextResponse.json({
       success: true,
       message: `Notification email dispatched to ${to}`,
       dispatchedAt: new Date().toISOString(),
+      previewUrl,
       details: { to, subject, type, userDetails }
     });
   } catch (error: any) {

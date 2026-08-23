@@ -75,10 +75,12 @@ export default function MoudgalyaGotra() {
           
           {/* Rishi Card 1 */}
           <div className="rounded-2xl bg-gradient-to-b from-amber-50 to-orange-50/50 dark:from-slate-800 dark:to-slate-800/80 p-6 border border-amber-200/80 dark:border-slate-700 text-center space-y-3">
-            <div className="w-24 h-24 mx-auto rounded-full bg-gradient-to-tr from-amber-700 via-orange-600 to-amber-500 p-1 shadow-md">
-              <div className="w-full h-full rounded-full bg-amber-900 flex items-center justify-center text-white text-3xl font-black">
-                ऋषि
-              </div>
+            <div className="w-24 h-24 mx-auto rounded-full overflow-hidden border-2 border-amber-400 p-0.5 shadow-md bg-amber-900">
+              <img
+                src="/rishi_logo.jpg"
+                alt="Maharshi Mudgala"
+                className="w-full h-full object-cover object-top rounded-full"
+              />
             </div>
             <h4 className="font-bold text-slate-900 dark:text-slate-100 text-lg">Maharshi Mudgala</h4>
             <p className="text-xs text-amber-800 dark:text-amber-400 font-semibold uppercase tracking-wider">

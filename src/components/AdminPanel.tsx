@@ -12,6 +12,8 @@ interface AdminPanelProps {
   mailLogs: MailLog[];
   addMailLog: (log: MailLog) => void;
   onUserApproved: (user: UserProfile) => void;
+  currentUser?: UserProfile | null;
+  onOpenAuth?: (mode: "login" | "signup" | "pending" | "admin") => void;
 }
 
 export default function AdminPanel({
@@ -19,15 +21,52 @@ export default function AdminPanel({
   setRegisteredUsers,
   mailLogs,
   addMailLog,
-  onUserApproved
+  onUserApproved,
+  currentUser,
+  onOpenAuth
 }: AdminPanelProps) {
 
+  if (!currentUser?.isAdmin) {
+    return (
+      <div className="bg-white dark:bg-slate-900 rounded-3xl p-8 sm:p-12 text-center border border-purple-200 dark:border-slate-800 shadow-md max-w-xl mx-auto my-12 space-y-6">
+        <div className="w-16 h-16 rounded-full bg-purple-100 dark:bg-purple-950/80 text-purple-700 dark:text-purple-300 flex items-center justify-center mx-auto shadow-sm">
+          <ShieldCheck className="w-8 h-8" />
+        </div>
+        <h3 className="text-2xl font-black text-slate-900 dark:text-slate-100">
+          Master Admin Access Only
+        </h3>
+        <p className="text-slate-600 dark:text-slate-300 text-xs sm:text-sm leading-relaxed max-w-md mx-auto">
+          The Admin Approvals Dashboard is restricted to verified Master Admin accounts. Regular family members have read-only access.
+        </p>
+        {onOpenAuth && (
+          <button
+            onClick={() => onOpenAuth("admin")}
+            className="px-6 py-3 bg-purple-700 hover:bg-purple-800 text-white font-bold rounded-2xl text-xs sm:text-sm shadow-md transition"
+          >
+            Sign In as Master Admin
+          </button>
+        )}
+      </div>
+    );
+  }
+
+  const [actionFeedback, setActionFeedback] = React.useState<{ type: "success" | "error"; msg: string } | null>(null);
+
   const handleAdminApproval = async (targetEmail: string, newStatus: "approved" | "rejected") => {
+    setActionFeedback(null);
     try {
       const docId = targetEmail.replace(/[@.]/g, "_");
       await setDoc(doc(db, "users", docId), { status: newStatus }, { merge: true });
-    } catch (err) {
+      setActionFeedback({
+        type: "success",
+        msg: `Successfully ${newStatus} applicant (${targetEmail}). Status updated in real-time.`
+      });
+    } catch (err: any) {
       console.log("Firestore update info:", err);
+      setActionFeedback({
+        type: "error",
+        msg: `Failed to update status in database: ${err?.message || "Unknown error"}`
+      });
     }
 
     const updatedUser = registeredUsers.find((u) => u.email === targetEmail);
@@ -44,7 +83,7 @@ export default function AdminPanel({
     const dispatchMail = {
       to: targetEmail,
       subject: `Bandhakavi Family App - Registration ${newStatus.toUpperCase()}`,
-      body: `Dear Applicant,\n\nYour registration request for the Bandhakavi Family Portal has been ${newStatus.toUpperCase()} by the Master Admin (${ADMIN_EMAIL}).\n\n${
+      body: `Dear Applicant,\n\nYour registration request for the Bandhakavi Family Portal has been ${newStatus.toUpperCase()} by the Master Admin.\n\n${
         newStatus === "approved"
           ? "You can now log in to the portal using your registered email ID."
           : "Please contact the admin if you believe this was an error."
@@ -74,6 +113,22 @@ export default function AdminPanel({
 
   return (
     <div className="space-y-6">
+      {/* Action Feedback Banner */}
+      {actionFeedback && (
+        <div className={`p-4 rounded-2xl text-xs sm:text-sm font-semibold flex items-center justify-between shadow-sm ${
+          actionFeedback.type === "success"
+            ? "bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800"
+            : "bg-rose-100 dark:bg-rose-950 text-rose-800 dark:text-rose-300 border border-rose-200 dark:border-rose-800"
+        }`}>
+          <span>{actionFeedback.msg}</span>
+          <button
+            onClick={() => setActionFeedback(null)}
+            className="ml-4 font-bold text-xs underline"
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
       {/* Header Banner */}
       <div className="bg-purple-900 text-white rounded-3xl p-8 shadow-lg flex flex-col md:flex-row items-center justify-between gap-6">
         <div className="space-y-2">
@@ -84,7 +139,6 @@ export default function AdminPanel({
           <h2 className="text-3xl font-extrabold">Admin Approval Dashboard</h2>
           <p className="text-purple-200 text-sm max-w-xl">
             Manage user registration sign-ups, review relations, and approve/reject account login access.
-            Master Admin Email: <strong>{ADMIN_EMAIL}</strong>
           </p>
         </div>
 
@@ -195,7 +249,7 @@ export default function AdminPanel({
       <div className="bg-slate-900 dark:bg-slate-950 text-slate-200 rounded-3xl p-6 border border-slate-800 space-y-4">
         <h4 className="font-bold text-amber-400 text-sm uppercase tracking-wider flex items-center space-x-2">
           <Mail className="w-4 h-4" />
-          <span>Real-time Simulated & API Email Service Log ({ADMIN_EMAIL})</span>
+          <span>Real-time Simulated & API Email Service Log</span>
         </h4>
 
         <div className="space-y-3 max-h-60 overflow-y-auto pr-2">

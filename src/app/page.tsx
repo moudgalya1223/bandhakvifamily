@@ -19,7 +19,7 @@ const INITIAL_REGISTERED_USERS: UserProfile[] = [
     age: "38",
     gender: "Male",
     gotra: "Moudgalya",
-    email: "dattu99amm@gmail.com",
+    email: "dattu99amma@gmail.com",
     phone: "+91 98765 00004",
     relation: "Grandson of Ramakrishna Sharma / Master Admin",
     status: "approved",
@@ -49,7 +49,7 @@ export default function Home() {
 
   // Auth Modal controls
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-  const [authModalMode, setAuthModalMode] = useState<"login" | "signup" | "pending">("login");
+  const [authModalMode, setAuthModalMode] = useState<"login" | "signup" | "pending" | "admin">("login");
   
   // Selected Tree Member detail modal
   const [selectedMember, setSelectedMember] = useState<FamilyMember | null>(null);
@@ -74,7 +74,10 @@ export default function Home() {
           if (!snapshot.empty) {
             const list: UserProfile[] = [];
             snapshot.forEach((docSnap) => {
-              list.push(docSnap.data() as UserProfile);
+              const uData = docSnap.data();
+              if (uData && typeof uData.email === "string" && uData.email.trim()) {
+                list.push(uData as UserProfile);
+              }
             });
             setRegisteredUsers(list);
           }
@@ -87,7 +90,7 @@ export default function Home() {
     }
   }, []);
 
-  const handleOpenAuth = (mode: "login" | "signup" | "pending") => {
+  const handleOpenAuth = (mode: "login" | "signup" | "pending" | "admin") => {
     setAuthModalMode(mode);
     setIsAuthModalOpen(true);
   };
@@ -123,7 +126,11 @@ export default function Home() {
       {/* Main Page View Container */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {activeTab === "tree" && (
-          <FamilyTree onSelectMember={(member) => setSelectedMember(member)} />
+          <FamilyTree
+            onSelectMember={(member) => setSelectedMember(member)}
+            currentUser={currentUser}
+            onOpenAuth={handleOpenAuth}
+          />
         )}
 
         {activeTab === "moudgalya" && <MoudgalyaGotra />}
@@ -138,6 +145,8 @@ export default function Home() {
             setRegisteredUsers={setRegisteredUsers}
             mailLogs={mailLogs}
             addMailLog={addMailLog}
+            currentUser={currentUser}
+            onOpenAuth={handleOpenAuth}
             onUserApproved={(approvedUser) => {
               console.log("User approved by admin:", approvedUser);
             }}
@@ -150,7 +159,12 @@ export default function Home() {
         isOpen={isAuthModalOpen}
         onClose={() => setIsAuthModalOpen(false)}
         initialMode={authModalMode}
-        onLoginSuccess={(user) => setCurrentUser(user)}
+        onLoginSuccess={(user) => {
+          setCurrentUser(user);
+          if (user.isAdmin) {
+            setActiveTab("admin");
+          }
+        }}
         registeredUsers={registeredUsers}
         setRegisteredUsers={setRegisteredUsers}
         addMailLog={addMailLog}
@@ -173,10 +187,7 @@ export default function Home() {
             Bandhakavi Family Hierarchy & Educational Trust
           </p>
           <p>
-            Admin Contact:{" "}
-            <a href={`mailto:${ADMIN_EMAIL}`} className="underline text-slate-200 font-semibold">
-              {ADMIN_EMAIL}
-            </a>
+            Admin Contact: <span className="text-slate-200 font-semibold">Bandhakavi Family Trust Administrator</span>
           </p>
           <p className="text-[10px] text-slate-500">
             © {new Date().getFullYear()} Bandhakavi Family Trust. Built with Next.js App Router & Firebase.

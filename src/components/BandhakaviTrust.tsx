@@ -93,7 +93,7 @@ export default function BandhakaviTrust() {
               <p className="text-xs text-amber-800 dark:text-amber-400 font-medium">Lead Admin & Digital Archival Head</p>
               <p className="text-[10px] text-slate-500 dark:text-slate-400 flex items-center space-x-1 mt-0.5">
                 <Mail className="w-3 h-3 text-amber-600 dark:text-amber-400" />
-                <span>{ADMIN_EMAIL}</span>
+                <span>admin@bandhakavi.org</span>
               </p>
             </div>
           </div>
