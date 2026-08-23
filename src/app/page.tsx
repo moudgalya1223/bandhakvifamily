@@ -78,6 +78,18 @@ export default function Home() {
     }
   }, []);
 
+  // Restore logged-in user session on page mount/reload
+  useEffect(() => {
+    try {
+      const savedUser = localStorage.getItem("bandhakavi_current_user");
+      if (savedUser) {
+        setCurrentUser(JSON.parse(savedUser));
+      }
+    } catch (err) {
+      console.log("Error restoring session:", err);
+    }
+  }, []);
+
   const handleOpenAuth = (mode: "login" | "signup" | "pending" | "admin") => {
     setAuthModalMode(mode);
     setIsAuthModalOpen(true);
@@ -85,6 +97,12 @@ export default function Home() {
 
   const handleLogout = () => {
     setCurrentUser(null);
+    try {
+      localStorage.removeItem("bandhakavi_current_user");
+    } catch (err) {
+      console.log("Logout error:", err);
+    }
+    setActiveTab("tree");
   };
 
   const addMailLog = (log: MailLog) => {
@@ -149,6 +167,11 @@ export default function Home() {
         initialMode={authModalMode}
         onLoginSuccess={(user) => {
           setCurrentUser(user);
+          try {
+            localStorage.setItem("bandhakavi_current_user", JSON.stringify(user));
+          } catch (e) {
+            console.log("Session save error:", e);
+          }
           if (user.isAdmin) {
             setActiveTab("admin");
           }
