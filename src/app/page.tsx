@@ -178,7 +178,7 @@ export default function Home() {
             Admin Contact: <span className="text-slate-200 font-semibold">Bandhakavi Family Trust Administrator</span>
           </p>
           <p className="text-[10px] text-slate-500">
-            © {new Date().getFullYear()} Bandhakavi Family Trust. Built with Next.js App Router & Firebase.
+            © {new Date().getFullYear()} Bandhakavi Family Trust.
           </p>
         </div>
       </footer>

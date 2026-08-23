@@ -51,9 +51,12 @@ export default function Navbar({
         >
           <div className="w-12 h-12 rounded-2xl overflow-hidden border-2 border-amber-400/80 shadow-md shadow-amber-500/20 bg-amber-900 flex-shrink-0">
             <img
-              src="/rishi_logo.jpg"
+              src={process.env.NODE_ENV === "production" ? "/bandhakvifamily/rishi_logo.jpg" : "/rishi_logo.jpg"}
               alt="Moudgalya Rishi Logo"
               className="w-full h-full object-cover object-top"
+              onError={(e) => {
+                e.currentTarget.src = "rishi_logo.jpg";
+              }}
             />
           </div>
           <div>

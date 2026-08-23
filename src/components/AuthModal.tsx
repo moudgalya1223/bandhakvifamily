@@ -303,9 +303,12 @@ export default function AuthModal({
           <div className="text-center space-y-2 mb-6">
             <div className="w-14 h-14 rounded-2xl overflow-hidden border-2 border-amber-400 shadow-md mx-auto mb-2 bg-amber-900 flex-shrink-0">
               <img
-                src="/rishi_logo.jpg"
+                src={process.env.NODE_ENV === "production" ? "/bandhakvifamily/rishi_logo.jpg" : "/rishi_logo.jpg"}
                 alt="Moudgalya Rishi Logo"
                 className="w-full h-full object-cover object-top"
+                onError={(e) => {
+                  e.currentTarget.src = "rishi_logo.jpg";
+                }}
               />
             </div>
             <h3 className="text-2xl font-black text-slate-900 dark:text-slate-100">
