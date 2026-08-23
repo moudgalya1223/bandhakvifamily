@@ -4,13 +4,13 @@ import { getFirestore } from "firebase/firestore";
 
 // Web app's Firebase configuration provided by user
 const firebaseConfig = {
-  apiKey: "AIzaSyDKSjxynGd6qRVFHFgMu8lawUt5ut41fV8",
-  authDomain: "familytree-3a3d0.firebaseapp.com",
-  projectId: "familytree-3a3d0",
-  storageBucket: "familytree-3a3d0.firebasestorage.app",
-  messagingSenderId: "931137663426",
-  appId: "1:931137663426:web:6aaf43085d4e1d1751265b",
-  measurementId: "G-4X5SY950EZ"
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || "AIzaSyDKSjxynGd6qRVFHFgMu8lawUt5ut41fV8",
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || "familytree-3a3d0.firebaseapp.com",
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || "familytree-3a3d0",
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || "familytree-3a3d0.firebasestorage.app",
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || "931137663426",
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || "1:931137663426:web:6aaf43085d4e1d1751265b",
+  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID || "G-4X5SY950EZ"
 };
 
 // Initialize Firebase app singleton
