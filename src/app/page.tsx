@@ -11,7 +11,7 @@ import AdminPanel from "@/components/AdminPanel";
 import MemberDetailModal from "@/components/MemberDetailModal";
 import { UserProfile, FamilyMember, MailLog } from "@/types";
 import { ADMIN_EMAIL, db } from "@/lib/firebase";
-import { collection, onSnapshot } from "firebase/firestore";
+import { collection, onSnapshot, doc, deleteDoc, setDoc } from "firebase/firestore";
 
 const INITIAL_REGISTERED_USERS: UserProfile[] = [
   {
@@ -162,6 +162,32 @@ export default function Home() {
       <MemberDetailModal
         member={selectedMember}
         onClose={() => setSelectedMember(null)}
+        currentUser={currentUser}
+        onDeleteMember={async (memberId) => {
+          try {
+            await deleteDoc(doc(db, "family_members", memberId));
+            setSelectedMember(null);
+          } catch (err) {
+            console.log("Delete error:", err);
+          }
+        }}
+        onRequestDelete={async (member, reason) => {
+          try {
+            const reqId = `del-${Date.now()}`;
+            await setDoc(doc(db, "delete_requests", reqId), {
+              id: reqId,
+              memberId: member.id,
+              memberName: member.name,
+              memberRelation: member.relation,
+              requesterEmail: currentUser?.email || "user@bandhakavi.org",
+              reason: reason,
+              createdAt: new Date().toISOString(),
+              status: "pending"
+            });
+          } catch (err) {
+            console.log("Request delete error:", err);
+          }
+        }}
       />
 
       {/* Footer */}

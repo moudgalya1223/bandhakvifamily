@@ -1,10 +1,8 @@
-"use client";
-
-import React from "react";
-import { ShieldCheck, Mail } from "lucide-react";
-import { UserProfile, MailLog } from "@/types";
+import React, { useEffect, useState } from "react";
+import { ShieldCheck, Mail, Trash2, Check, X, AlertTriangle } from "lucide-react";
+import { UserProfile, MailLog, DeleteRequest } from "@/types";
 import { ADMIN_EMAIL, db } from "@/lib/firebase";
-import { doc, setDoc } from "firebase/firestore";
+import { doc, setDoc, deleteDoc, collection, onSnapshot } from "firebase/firestore";
 
 interface AdminPanelProps {
   registeredUsers: UserProfile[];
@@ -50,7 +48,61 @@ export default function AdminPanel({
     );
   }
 
-  const [actionFeedback, setActionFeedback] = React.useState<{ type: "success" | "error"; msg: string } | null>(null);
+  const [actionFeedback, setActionFeedback] = useState<{ type: "success" | "error"; msg: string } | null>(null);
+  const [deleteRequests, setDeleteRequests] = useState<DeleteRequest[]>([]);
+
+  useEffect(() => {
+    if (!currentUser?.isAdmin) return;
+    try {
+      const unsub = onSnapshot(collection(db, "delete_requests"), (snapshot) => {
+        if (!snapshot.empty) {
+          const list: DeleteRequest[] = [];
+          snapshot.forEach((docSnap) => {
+            list.push({ id: docSnap.id, ...docSnap.data() } as DeleteRequest);
+          });
+          setDeleteRequests(list);
+        } else {
+          setDeleteRequests([]);
+        }
+      });
+      return () => unsub();
+    } catch (err) {
+      console.log("Delete requests listener err:", err);
+    }
+  }, [currentUser?.isAdmin]);
+
+  const handleApproveDeleteRequest = async (req: DeleteRequest) => {
+    setActionFeedback(null);
+    try {
+      // 1. Delete member doc from family_members collection
+      await deleteDoc(doc(db, "family_members", req.memberId));
+      // 2. Delete request doc from delete_requests collection
+      await deleteDoc(doc(db, "delete_requests", req.id));
+
+      setActionFeedback({
+        type: "success",
+        msg: `Approved & Deleted member "${req.memberName}" from family tree upon user request!`
+      });
+    } catch (err: any) {
+      console.log("Delete approve error:", err);
+      setActionFeedback({
+        type: "error",
+        msg: `Failed to delete member: ${err?.message || "Database error"}`
+      });
+    }
+  };
+
+  const handleDismissDeleteRequest = async (requestId: string) => {
+    try {
+      await deleteDoc(doc(db, "delete_requests", requestId));
+      setActionFeedback({
+        type: "success",
+        msg: "Deletion request dismissed."
+      });
+    } catch (err: any) {
+      console.log("Dismiss delete request error:", err);
+    }
+  };
 
   const handleAdminApproval = async (targetEmail: string, newStatus: "approved" | "rejected") => {
     setActionFeedback(null);
@@ -236,6 +288,77 @@ export default function AdminPanel({
                           Toggle Status
                         </button>
                       )}
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Deletion Requests Queue */}
+      <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 border border-rose-200/80 dark:border-slate-800 shadow-sm space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-2">
+            <AlertTriangle className="w-5 h-5 text-rose-600 dark:text-rose-400" />
+            <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">
+              Family Member Deletion Requests ({deleteRequests.length})
+            </h3>
+          </div>
+          <span className="text-xs text-slate-500">
+            Review user-submitted requests to remove members from the tree
+          </span>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-xs sm:text-sm">
+            <thead>
+              <tr className="bg-rose-50 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 font-bold uppercase tracking-wider border-b dark:border-slate-700">
+                <th className="p-3 rounded-l-xl">Target Member</th>
+                <th className="p-3">Relation / ID</th>
+                <th className="p-3">Requested By</th>
+                <th className="p-3">Reason for Deletion</th>
+                <th className="p-3 text-right rounded-r-xl">Action</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+              {deleteRequests.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="p-6 text-center text-slate-400 text-xs">
+                    No pending deletion requests from family members.
+                  </td>
+                </tr>
+              ) : (
+                deleteRequests.map((req) => (
+                  <tr key={req.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/60 transition">
+                    <td className="p-3 font-bold text-slate-900 dark:text-slate-100">
+                      {req.memberName}
+                    </td>
+                    <td className="p-3 text-slate-600 dark:text-slate-400 text-xs">
+                      <div>{req.memberRelation}</div>
+                      <div className="text-[10px] text-slate-400">ID: #{req.memberId}</div>
+                    </td>
+                    <td className="p-3 text-slate-700 dark:text-slate-300 font-semibold text-xs">
+                      {req.requesterEmail}
+                    </td>
+                    <td className="p-3 max-w-xs text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-800/50 rounded-xl p-2 font-mono text-xs">
+                      "{req.reason}"
+                    </td>
+                    <td className="p-3 text-right space-x-2 whitespace-nowrap">
+                      <button
+                        onClick={() => handleApproveDeleteRequest(req)}
+                        className="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl text-xs transition shadow-sm flex-inline items-center space-x-1"
+                      >
+                        <Trash2 className="w-3.5 h-3.5 inline mr-1" />
+                        Approve & Delete
+                      </button>
+                      <button
+                        onClick={() => handleDismissDeleteRequest(req.id)}
+                        className="px-3 py-1.5 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 text-slate-700 dark:text-slate-300 font-bold rounded-xl text-xs transition"
+                      >
+                        Dismiss
+                      </button>
                     </td>
                   </tr>
                 ))

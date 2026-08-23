@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { FamilyMember, UserProfile } from "@/types";
 import { db } from "@/lib/firebase";
-import { collection, onSnapshot, doc, setDoc } from "firebase/firestore";
+import { collection, onSnapshot, doc, setDoc, deleteDoc } from "firebase/firestore";
 
 const INITIAL_FAMILY_DATA: FamilyMember[] = [
   {
@@ -156,12 +156,40 @@ export default function FamilyTree({ onSelectMember, currentUser, onOpenAuth }: 
       gender: "Male",
       gotra: "Moudgalya",
       relation: "",
-      parentId: "m-1",
+      parentId: "gen1-1",
       spouse: "",
       bio: "",
       email: "",
       phone: ""
     });
+  };
+
+  const handleDeleteMember = async (memberId: string) => {
+    try {
+      await deleteDoc(doc(db, "family_members", memberId));
+      setFamilyMembers((prev) => prev.filter((m) => m.id !== memberId));
+    } catch (err) {
+      console.log("Delete member error:", err);
+    }
+  };
+
+  const handleRequestDelete = async (member: FamilyMember, reason: string) => {
+    try {
+      const reqId = `del-${Date.now()}`;
+      const delReq = {
+        id: reqId,
+        memberId: member.id,
+        memberName: member.name,
+        memberRelation: member.relation,
+        requesterEmail: currentUser?.email || "family.member@bandhakavi.org",
+        reason: reason,
+        createdAt: new Date().toISOString(),
+        status: "pending"
+      };
+      await setDoc(doc(db, "delete_requests", reqId), delReq);
+    } catch (err) {
+      console.log("Request delete error:", err);
+    }
   };
 
   const filteredMembers = useMemo(() => {

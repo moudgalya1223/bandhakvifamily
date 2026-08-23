@@ -43,3 +43,15 @@ export interface MailLog {
   body: string;
   timestamp: string;
 }
+
+export interface DeleteRequest {
+  id: string;
+  memberId: string;
+  memberName: string;
+  memberRelation: string;
+  requesterEmail: string;
+  requesterName?: string;
+  reason: string;
+  createdAt: string;
+  status: 'pending' | 'approved' | 'rejected';
+}
