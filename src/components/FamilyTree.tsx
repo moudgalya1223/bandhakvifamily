@@ -14,7 +14,68 @@ import { FamilyMember, UserProfile } from "@/types";
 import { db } from "@/lib/firebase";
 import { collection, onSnapshot, doc, setDoc } from "firebase/firestore";
 
-const INITIAL_FAMILY_DATA: FamilyMember[] = [];
+const INITIAL_FAMILY_DATA: FamilyMember[] = [
+  {
+    id: "gen1-1",
+    name: "Bandhakavi Lakshmi Narayana Murthy (BLN Murthy)",
+    generation: 1,
+    gender: "Male",
+    gotra: "Moudgalya",
+    relation: "Generation 1 Patriarch Ancestor",
+    parentId: null,
+    spouse: "",
+    bio: "Generation 1 Progenitor Ancestor of Bandhakavi Family.",
+    status: "approved"
+  },
+  {
+    id: "gen1-2",
+    name: "Bandhakavi Venkata Subbaraya Rao (BVSR)",
+    generation: 1,
+    gender: "Male",
+    gotra: "Moudgalya",
+    relation: "Generation 1 Patriarch Ancestor",
+    parentId: null,
+    spouse: "",
+    bio: "Generation 1 Progenitor Ancestor of Bandhakavi Family.",
+    status: "approved"
+  },
+  {
+    id: "gen1-3",
+    name: "Bandhakavi Anjaneyulu",
+    generation: 1,
+    gender: "Male",
+    gotra: "Moudgalya",
+    relation: "Generation 1 Patriarch Ancestor",
+    parentId: null,
+    spouse: "",
+    bio: "Generation 1 Progenitor Ancestor of Bandhakavi Family.",
+    status: "approved"
+  },
+  {
+    id: "gen1-4",
+    name: "Bandhakavi Ramajogeswara Rao",
+    generation: 1,
+    gender: "Male",
+    gotra: "Moudgalya",
+    relation: "Generation 1 Patriarch Ancestor",
+    parentId: null,
+    spouse: "",
+    bio: "Generation 1 Progenitor Ancestor of Bandhakavi Family.",
+    status: "approved"
+  },
+  {
+    id: "gen1-5",
+    name: "Bandhakavi Rajarao",
+    generation: 1,
+    gender: "Male",
+    gotra: "Moudgalya",
+    relation: "Generation 1 Patriarch Ancestor",
+    parentId: null,
+    spouse: "",
+    bio: "Generation 1 Progenitor Ancestor of Bandhakavi Family.",
+    status: "approved"
+  }
+];
 
 interface FamilyTreeProps {
   onSelectMember: (member: FamilyMember) => void;
@@ -31,7 +92,7 @@ export default function FamilyTree({ onSelectMember, currentUser, onOpenAuth }: 
     gender: "Male" as "Male" | "Female" | "Other",
     gotra: "Moudgalya",
     relation: "",
-    parentId: "m-1",
+    parentId: "gen1-1",
     spouse: "",
     bio: "",
     email: "",
