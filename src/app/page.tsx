@@ -41,9 +41,12 @@ const INITIAL_REGISTERED_USERS: UserProfile[] = [
 ];
 
 export default function Home() {
-  const [activeTab, setActiveTab] = useState<string>("tree"); // 'tree' | 'moudgalya' | 'trust' | 'donate' | 'admin'
+  const [activeTab, setActiveTab] = useState<string>("tree");
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
   
+  // Theme state: defaults to dark mode or persisted preference
+  const [isDarkMode, setIsDarkMode] = useState<boolean>(true);
+
   // Auth Modal controls
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authModalMode, setAuthModalMode] = useState<"login" | "signup" | "pending">("login");
@@ -51,11 +54,16 @@ export default function Home() {
   // Selected Tree Member detail modal
   const [selectedMember, setSelectedMember] = useState<FamilyMember | null>(null);
 
-  // Live Users state (synced with Firestore)
+  // Live Users state
   const [registeredUsers, setRegisteredUsers] = useState<UserProfile[]>(INITIAL_REGISTERED_USERS);
   
   // Live Email Logs
   const [mailLogs, setMailLogs] = useState<MailLog[]>([]);
+
+  // Toggle Dark Mode handler
+  const toggleDarkMode = () => {
+    setIsDarkMode((prev) => !prev);
+  };
 
   // Sync users from Firestore
   useEffect(() => {
@@ -95,7 +103,11 @@ export default function Home() {
   const pendingUsersCount = registeredUsers.filter((u) => u.status === "pending").length;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-amber-50 via-slate-50 to-orange-50 text-slate-800 font-sans flex flex-col">
+    <div className={`min-h-screen font-sans flex flex-col transition-colors duration-300 ${
+      isDarkMode
+        ? "bg-slate-950 text-slate-100 dark"
+        : "bg-gradient-to-br from-amber-50 via-slate-50 to-orange-50 text-slate-800"
+    }`}>
       {/* Navigation Header */}
       <Navbar
         activeTab={activeTab}
@@ -104,6 +116,8 @@ export default function Home() {
         onOpenAuth={handleOpenAuth}
         onLogout={handleLogout}
         pendingUsersCount={pendingUsersCount}
+        isDarkMode={isDarkMode}
+        toggleDarkMode={toggleDarkMode}
       />
 
       {/* Main Page View Container */}
@@ -149,7 +163,11 @@ export default function Home() {
       />
 
       {/* Footer */}
-      <footer className="bg-slate-900 text-slate-400 text-xs border-t border-slate-800 py-8 mt-12">
+      <footer className={`text-xs border-t py-8 mt-12 transition-colors ${
+        isDarkMode
+          ? "bg-slate-900 border-slate-800 text-slate-400"
+          : "bg-slate-900 text-slate-400 border-slate-800"
+      }`}>
         <div className="max-w-7xl mx-auto px-4 text-center space-y-2">
           <p className="text-amber-400 font-bold">
             Bandhakavi Family Hierarchy & Educational Trust

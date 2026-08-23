@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { ShieldCheck, Mail, AlertCircle, CheckCircle2, XCircle } from "lucide-react";
+import { ShieldCheck, Mail } from "lucide-react";
 import { UserProfile, MailLog } from "@/types";
 import { ADMIN_EMAIL, db } from "@/lib/firebase";
 import { doc, setDoc } from "firebase/firestore";
@@ -95,13 +95,13 @@ export default function AdminPanel({
       </div>
 
       {/* User Queue Table */}
-      <div className="bg-white rounded-3xl p-6 sm:p-8 border border-purple-200/80 shadow-sm space-y-4">
-        <h3 className="text-lg font-bold text-slate-900">User Registrations Queue</h3>
+      <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 border border-purple-200/80 dark:border-slate-800 shadow-sm space-y-4">
+        <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">User Registrations Queue</h3>
 
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs sm:text-sm">
             <thead>
-              <tr className="bg-slate-100 text-slate-600 font-bold uppercase tracking-wider border-b">
+              <tr className="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold uppercase tracking-wider border-b dark:border-slate-700">
                 <th className="p-3 rounded-l-xl">Applicant Name</th>
                 <th className="p-3">Age & Gender</th>
                 <th className="p-3">Gotra</th>
@@ -111,7 +111,7 @@ export default function AdminPanel({
                 <th className="p-3 text-right rounded-r-xl">Action</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
               {registeredUsers.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="p-4 text-center text-slate-400 text-xs">
@@ -120,34 +120,34 @@ export default function AdminPanel({
                 </tr>
               ) : (
                 registeredUsers.map((u, idx) => (
-                  <tr key={idx} className="hover:bg-slate-50 transition">
-                    <td className="p-3 font-bold text-slate-900">
+                  <tr key={idx} className="hover:bg-slate-50 dark:hover:bg-slate-800/60 transition">
+                    <td className="p-3 font-bold text-slate-900 dark:text-slate-100">
                       <div>{u.name}</div>
                       {u.isAdmin && (
-                        <span className="inline-block mt-0.5 text-[9px] bg-purple-100 text-purple-800 px-2 py-0.5 rounded-full font-bold">
+                        <span className="inline-block mt-0.5 text-[9px] bg-purple-100 dark:bg-purple-950 text-purple-800 dark:text-purple-300 px-2 py-0.5 rounded-full font-bold">
                           Master Admin
                         </span>
                       )}
                     </td>
-                    <td className="p-3 text-slate-700">
+                    <td className="p-3 text-slate-700 dark:text-slate-300">
                       {u.age || "N/A"} yrs • {u.gender}
                     </td>
-                    <td className="p-3 font-semibold text-amber-800">{u.gotra}</td>
-                    <td className="p-3 max-w-xs text-slate-700 font-medium leading-relaxed">
+                    <td className="p-3 font-semibold text-amber-800 dark:text-amber-400">{u.gotra}</td>
+                    <td className="p-3 max-w-xs text-slate-700 dark:text-slate-300 font-medium leading-relaxed">
                       {u.relation}
                     </td>
-                    <td className="p-3 text-slate-600 text-xs">
-                      <div className="font-semibold text-slate-900">{u.email}</div>
-                      <div className="text-slate-500">{u.phone}</div>
+                    <td className="p-3 text-slate-600 dark:text-slate-400 text-xs">
+                      <div className="font-semibold text-slate-900 dark:text-slate-200">{u.email}</div>
+                      <div className="text-slate-500 dark:text-slate-400">{u.phone}</div>
                     </td>
                     <td className="p-3">
                       <span
                         className={`px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase ${
                           u.status === "approved"
-                            ? "bg-emerald-100 text-emerald-800"
+                            ? "bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300"
                             : u.status === "rejected"
-                            ? "bg-rose-100 text-rose-800"
-                            : "bg-amber-100 text-amber-800"
+                            ? "bg-rose-100 dark:bg-rose-950 text-rose-800 dark:text-rose-300"
+                            : "bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300"
                         }`}
                       >
                         {u.status}
@@ -177,7 +177,7 @@ export default function AdminPanel({
                               u.status === "approved" ? "rejected" : "approved"
                             )
                           }
-                          className="px-2.5 py-1 text-slate-500 hover:text-slate-800 text-xs underline"
+                          className="px-2.5 py-1 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 text-xs underline"
                         >
                           Toggle Status
                         </button>
@@ -192,7 +192,7 @@ export default function AdminPanel({
       </div>
 
       {/* Email Notification Dispatch Log */}
-      <div className="bg-slate-900 text-slate-200 rounded-3xl p-6 border border-slate-800 space-y-4">
+      <div className="bg-slate-900 dark:bg-slate-950 text-slate-200 rounded-3xl p-6 border border-slate-800 space-y-4">
         <h4 className="font-bold text-amber-400 text-sm uppercase tracking-wider flex items-center space-x-2">
           <Mail className="w-4 h-4" />
           <span>Real-time Simulated & API Email Service Log ({ADMIN_EMAIL})</span>
@@ -205,7 +205,7 @@ export default function AdminPanel({
             </p>
           ) : (
             mailLogs.map((m, i) => (
-              <div key={i} className="p-3 bg-slate-800 rounded-xl border border-slate-700 text-xs space-y-1">
+              <div key={i} className="p-3 bg-slate-800 dark:bg-slate-900 rounded-xl border border-slate-700 text-xs space-y-1">
                 <div className="flex justify-between font-bold text-amber-300">
                   <span>TO: {m.to}</span>
                   <span className="text-[10px] text-slate-400">{m.timestamp?.split("T")[1]?.slice(0, 8)}</span>

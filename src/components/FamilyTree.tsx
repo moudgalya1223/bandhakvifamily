@@ -209,18 +209,18 @@ export default function FamilyTree({ onSelectMember }: FamilyTreeProps) {
   return (
     <div className="space-y-6">
       {/* Header Banner */}
-      <div className="bg-white rounded-3xl p-6 sm:p-8 border border-amber-200/80 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-6 relative overflow-hidden">
-        <div className="absolute -right-10 -bottom-10 w-60 h-60 bg-amber-100/50 rounded-full blur-2xl pointer-events-none" />
+      <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 border border-amber-200/80 dark:border-slate-800 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-6 relative overflow-hidden transition-colors">
+        <div className="absolute -right-10 -bottom-10 w-60 h-60 bg-amber-100/50 dark:bg-amber-900/10 rounded-full blur-2xl pointer-events-none" />
 
         <div className="space-y-2 max-w-2xl">
-          <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-amber-100 text-amber-900 text-xs font-bold uppercase tracking-wider">
+          <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-amber-100 dark:bg-amber-950/60 text-amber-900 dark:text-amber-300 text-xs font-bold uppercase tracking-wider">
             <Sparkles className="w-3.5 h-3.5" />
             <span>Interactive Asynchronous Vamsha Tree</span>
           </div>
-          <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900">
+          <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-slate-100">
             Bandhakavi Hierarchy Family Tree
           </h2>
-          <p className="text-slate-600 text-sm leading-relaxed">
+          <p className="text-slate-600 dark:text-slate-300 text-sm leading-relaxed">
             Explore our ancestral lineage across generations. Synced in real-time with Firebase. Click any member to view full details or add direct lineage descendants.
           </p>
         </div>
@@ -234,7 +234,7 @@ export default function FamilyTree({ onSelectMember }: FamilyTreeProps) {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search name or relation..."
-              className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-amber-500 text-sm outline-none transition"
+              className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100 focus:bg-white dark:focus:bg-slate-800 focus:ring-2 focus:ring-amber-500 text-sm outline-none transition"
             />
           </div>
 
@@ -249,7 +249,7 @@ export default function FamilyTree({ onSelectMember }: FamilyTreeProps) {
       </div>
 
       {/* Tree Render Container */}
-      <div className="bg-slate-900/95 text-white rounded-3xl p-6 sm:p-10 border border-slate-800 shadow-xl overflow-x-auto min-h-[500px]">
+      <div className="bg-slate-900/95 dark:bg-slate-950 text-white rounded-3xl p-6 sm:p-10 border border-slate-800 shadow-xl overflow-x-auto min-h-[500px]">
         <div className="min-w-[700px] flex flex-col items-center space-y-12 py-4">
           {Object.keys(generationGroups)
             .sort((a, b) => Number(a) - Number(b))
@@ -316,36 +316,36 @@ export default function FamilyTree({ onSelectMember }: FamilyTreeProps) {
       {/* Add Member Modal */}
       {showAddModal && (
         <div className="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 border border-amber-200 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+          <div className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 rounded-3xl max-w-lg w-full p-6 sm:p-8 border border-amber-200 dark:border-slate-800 shadow-2xl relative max-h-[90vh] overflow-y-auto">
             <button
               onClick={() => setShowAddModal(false)}
-              className="absolute right-5 top-5 p-2 rounded-full text-slate-400 hover:text-slate-700"
+              className="absolute right-5 top-5 p-2 rounded-full text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"
             >
               <XCircle className="w-6 h-6" />
             </button>
 
-            <h3 className="text-xl font-black text-slate-900 mb-4">Add Lineage Member to Tree</h3>
+            <h3 className="text-xl font-black text-slate-900 dark:text-slate-100 mb-4">Add Lineage Member to Tree</h3>
 
             <form onSubmit={handleAddMemberSubmit} className="space-y-4 text-xs">
               <div>
-                <label className="block font-bold text-slate-700 uppercase mb-1">Full Name *</label>
+                <label className="block font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">Full Name *</label>
                 <input
                   type="text"
                   value={newMember.name}
                   onChange={(e) => setNewMember({ ...newMember, name: e.target.value })}
                   required
                   placeholder="e.g. Bandhakavi Somayajulu"
-                  className="w-full p-2.5 rounded-xl border border-slate-300 text-sm outline-none focus:ring-2 focus:ring-amber-500"
+                  className="w-full p-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 text-sm outline-none focus:ring-2 focus:ring-amber-500"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-bold text-slate-700 uppercase mb-1">Gender</label>
+                  <label className="block font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">Gender</label>
                   <select
                     value={newMember.gender}
                     onChange={(e) => setNewMember({ ...newMember, gender: e.target.value as any })}
-                    className="w-full p-2.5 rounded-xl border border-slate-300 bg-white"
+                    className="w-full p-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100"
                   >
                     <option value="Male">Male</option>
                     <option value="Female">Female</option>
@@ -353,22 +353,22 @@ export default function FamilyTree({ onSelectMember }: FamilyTreeProps) {
                   </select>
                 </div>
                 <div>
-                  <label className="block font-bold text-slate-700 uppercase mb-1">Gotra</label>
+                  <label className="block font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">Gotra</label>
                   <input
                     type="text"
                     value={newMember.gotra}
                     onChange={(e) => setNewMember({ ...newMember, gotra: e.target.value })}
-                    className="w-full p-2.5 rounded-xl border border-slate-300"
+                    className="w-full p-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block font-bold text-slate-700 uppercase mb-1">Parent Node in Tree *</label>
+                <label className="block font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">Parent Node in Tree *</label>
                 <select
                   value={newMember.parentId || ""}
                   onChange={(e) => setNewMember({ ...newMember, parentId: e.target.value })}
-                  className="w-full p-2.5 rounded-xl border border-slate-300 bg-white"
+                  className="w-full p-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100"
                 >
                   {familyMembers.map((m) => (
                     <option key={m.id} value={m.id}>
@@ -379,33 +379,33 @@ export default function FamilyTree({ onSelectMember }: FamilyTreeProps) {
               </div>
 
               <div>
-                <label className="block font-bold text-slate-700 uppercase mb-1">Relation Title</label>
+                <label className="block font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">Relation Title</label>
                 <input
                   type="text"
                   value={newMember.relation}
                   onChange={(e) => setNewMember({ ...newMember, relation: e.target.value })}
                   placeholder="e.g. Great-Grandson"
-                  className="w-full p-2.5 rounded-xl border border-slate-300"
+                  className="w-full p-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100"
                 />
               </div>
 
               <div>
-                <label className="block font-bold text-slate-700 uppercase mb-1">Spouse Name</label>
+                <label className="block font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">Spouse Name</label>
                 <input
                   type="text"
                   value={newMember.spouse}
                   onChange={(e) => setNewMember({ ...newMember, spouse: e.target.value })}
-                  className="w-full p-2.5 rounded-xl border border-slate-300"
+                  className="w-full p-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100"
                 />
               </div>
 
               <div>
-                <label className="block font-bold text-slate-700 uppercase mb-1">Short Biography</label>
+                <label className="block font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">Short Biography</label>
                 <textarea
                   rows={2}
                   value={newMember.bio}
                   onChange={(e) => setNewMember({ ...newMember, bio: e.target.value })}
-                  className="w-full p-2.5 rounded-xl border border-slate-300"
+                  className="w-full p-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100"
                 />
               </div>
 

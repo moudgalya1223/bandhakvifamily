@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Trees, XCircle, AlertCircle, CheckCircle2 } from "lucide-react";
+import { Trees, XCircle, AlertCircle } from "lucide-react";
 import { UserProfile } from "@/types";
 import { ADMIN_EMAIL, db } from "@/lib/firebase";
 import { doc, setDoc } from "firebase/firestore";
@@ -128,17 +128,14 @@ export default function AuthModal({
     };
 
     try {
-      // Save to Firestore users collection
       const docId = userEmail.replace(/[@.]/g, "_");
       await setDoc(doc(db, "users", docId), newUserRecord);
     } catch (err) {
       console.log("Firestore write info:", err);
     }
 
-    // Update local state
     setRegisteredUsers((prev) => [...prev.filter((u) => u.email !== userEmail), newUserRecord]);
 
-    // Dispatch simulated and API notifications to User and Admin
     const userMailLog = {
       to: userEmail,
       subject: "Bandhakavi Family Portal - Registration Submitted",
@@ -156,7 +153,6 @@ export default function AuthModal({
     addMailLog(userMailLog);
     addMailLog(adminMailLog);
 
-    // Call internal email API route
     try {
       fetch("/api/send-email", {
         method: "POST",
@@ -201,7 +197,6 @@ export default function AuthModal({
       return;
     }
 
-    // Direct Admin override for dattu99amm@gmail.com
     if (testEmail === ADMIN_EMAIL.toLowerCase()) {
       const adminUser: UserProfile = {
         name: "Bandhakavi Dattatreya Sastri",
@@ -247,18 +242,17 @@ export default function AuthModal({
       return;
     }
 
-    // Approved User -> Login Success
     onLoginSuccess(matchedUser);
     onClose();
   };
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 border border-amber-200 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+      <div className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 rounded-3xl max-w-lg w-full p-6 sm:p-8 border border-amber-200 dark:border-slate-800 shadow-2xl relative max-h-[90vh] overflow-y-auto">
         
         <button
           onClick={onClose}
-          className="absolute right-5 top-5 p-2 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100"
+          className="absolute right-5 top-5 p-2 rounded-full text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"
         >
           <XCircle className="w-6 h-6" />
         </button>
@@ -268,28 +262,28 @@ export default function AuthModal({
           <div className="w-12 h-12 rounded-2xl bg-amber-600 text-white flex items-center justify-center mx-auto shadow-md">
             <Trees className="w-6 h-6" />
           </div>
-          <h3 className="text-2xl font-black text-slate-900">
+          <h3 className="text-2xl font-black text-slate-900 dark:text-slate-100">
             {authMode === "login"
               ? "Bandhakavi Family Login"
               : authMode === "signup"
               ? "Register Relation Details"
               : "Registration Submitted"}
           </h3>
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-slate-500 dark:text-slate-400">
             {authMode === "login"
               ? "Enter your approved email ID to access the tree and portal"
               : authMode === "signup"
               ? "All fields are mandatory. Details will be sent to Admin for approval."
-              : "Awaiting approval from Admin (dattu99amm@gmail.com)"}
+              : `Awaiting approval from Admin (${ADMIN_EMAIL})`}
           </p>
         </div>
 
         {/* Modal Notification */}
         {modalNotification && (
           <div className={`mb-4 p-3 rounded-xl text-xs font-semibold flex items-center space-x-2 ${
-            modalNotification.type === "error" ? "bg-rose-100 text-rose-800 border border-rose-200" :
-            modalNotification.type === "warning" ? "bg-amber-100 text-amber-900 border border-amber-200" :
-            "bg-emerald-100 text-emerald-800 border border-emerald-200"
+            modalNotification.type === "error" ? "bg-rose-100 dark:bg-rose-950 text-rose-800 dark:text-rose-300 border border-rose-200 dark:border-rose-800" :
+            modalNotification.type === "warning" ? "bg-amber-100 dark:bg-amber-950 text-amber-900 dark:text-amber-300 border border-amber-200 dark:border-amber-800" :
+            "bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800"
           }`}>
             <AlertCircle className="w-4 h-4 flex-shrink-0" />
             <span>{modalNotification.msg}</span>
@@ -300,7 +294,7 @@ export default function AuthModal({
         {authMode === "login" && (
           <form onSubmit={handleLoginSubmit} className="space-y-4">
             <div>
-              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">
                 Mail ID *
               </label>
               <input
@@ -309,7 +303,7 @@ export default function AuthModal({
                 onChange={(e) => setLoginEmail(e.target.value)}
                 required
                 placeholder="e.g. dattu99amm@gmail.com"
-                className="w-full px-4 py-3 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-amber-500 outline-none"
+                className="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 text-sm focus:ring-2 focus:ring-amber-500 outline-none"
               />
             </div>
 
@@ -327,7 +321,7 @@ export default function AuthModal({
                   setModalNotification(null);
                   setAuthMode("signup");
                 }}
-                className="text-xs text-amber-800 font-bold hover:underline"
+                className="text-xs text-amber-800 dark:text-amber-400 font-bold hover:underline"
               >
                 Don't have an approved account? Sign Up
               </button>
@@ -341,7 +335,7 @@ export default function AuthModal({
             
             {/* Field 1: Full Name */}
             <div>
-              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">
                 Full Name (Textbox) *
               </label>
               <input
@@ -349,17 +343,17 @@ export default function AuthModal({
                 value={signupForm.name}
                 onChange={(e) => setSignupForm({ ...signupForm, name: e.target.value })}
                 placeholder="e.g. Bandhakavi Dattatreya"
-                className={`w-full px-4 py-2.5 rounded-xl border text-sm outline-none transition ${
-                  formErrors.name ? "border-rose-500 bg-rose-50" : "border-slate-300 focus:ring-2 focus:ring-amber-500"
+                className={`w-full px-4 py-2.5 rounded-xl border text-sm outline-none transition bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 ${
+                  formErrors.name ? "border-rose-500 bg-rose-50 dark:bg-rose-950/40" : "border-slate-300 dark:border-slate-700 focus:ring-2 focus:ring-amber-500"
                 }`}
               />
-              {formErrors.name && <p className="text-[11px] text-rose-600 font-semibold mt-1">{formErrors.name}</p>}
+              {formErrors.name && <p className="text-[11px] text-rose-600 dark:text-rose-400 font-semibold mt-1">{formErrors.name}</p>}
             </div>
 
             {/* Field 2 & 3: Age & Gender */}
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">
                   Age *
                 </label>
                 <input
@@ -367,20 +361,20 @@ export default function AuthModal({
                   value={signupForm.age}
                   onChange={(e) => setSignupForm({ ...signupForm, age: e.target.value })}
                   placeholder="e.g. 35"
-                  className={`w-full px-4 py-2.5 rounded-xl border text-sm outline-none transition ${
-                    formErrors.age ? "border-rose-500 bg-rose-50" : "border-slate-300 focus:ring-2 focus:ring-amber-500"
+                  className={`w-full px-4 py-2.5 rounded-xl border text-sm outline-none transition bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 ${
+                    formErrors.age ? "border-rose-500 bg-rose-50 dark:bg-rose-950/40" : "border-slate-300 dark:border-slate-700 focus:ring-2 focus:ring-amber-500"
                   }`}
                 />
-                {formErrors.age && <p className="text-[11px] text-rose-600 font-semibold mt-1">{formErrors.age}</p>}
+                {formErrors.age && <p className="text-[11px] text-rose-600 dark:text-rose-400 font-semibold mt-1">{formErrors.age}</p>}
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">
                   Gender (Radio Button) *
                 </label>
                 <div className="flex items-center space-x-3 pt-2">
                   {(["Male", "Female", "Other"] as const).map((g) => (
-                    <label key={g} className="inline-flex items-center text-xs font-medium text-slate-700 cursor-pointer">
+                    <label key={g} className="inline-flex items-center text-xs font-medium text-slate-700 dark:text-slate-300 cursor-pointer">
                       <input
                         type="radio"
                         name="gender"
@@ -393,13 +387,13 @@ export default function AuthModal({
                     </label>
                   ))}
                 </div>
-                {formErrors.gender && <p className="text-[11px] text-rose-600 font-semibold mt-1">{formErrors.gender}</p>}
+                {formErrors.gender && <p className="text-[11px] text-rose-600 dark:text-rose-400 font-semibold mt-1">{formErrors.gender}</p>}
               </div>
             </div>
 
             {/* Field 4: Gotra */}
             <div>
-              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">
                 Gotra (Textbox) *
               </label>
               <input
@@ -407,17 +401,17 @@ export default function AuthModal({
                 value={signupForm.gotra}
                 onChange={(e) => setSignupForm({ ...signupForm, gotra: e.target.value })}
                 placeholder="e.g. Moudgalya"
-                className={`w-full px-4 py-2.5 rounded-xl border text-sm outline-none transition ${
-                  formErrors.gotra ? "border-rose-500 bg-rose-50" : "border-slate-300 focus:ring-2 focus:ring-amber-500"
+                className={`w-full px-4 py-2.5 rounded-xl border text-sm outline-none transition bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 ${
+                  formErrors.gotra ? "border-rose-500 bg-rose-50 dark:bg-rose-950/40" : "border-slate-300 dark:border-slate-700 focus:ring-2 focus:ring-amber-500"
                 }`}
               />
-              {formErrors.gotra && <p className="text-[11px] text-rose-600 font-semibold mt-1">{formErrors.gotra}</p>}
+              {formErrors.gotra && <p className="text-[11px] text-rose-600 dark:text-rose-400 font-semibold mt-1">{formErrors.gotra}</p>}
             </div>
 
             {/* Field 5 & 6: Mail ID & Phone Number */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">
                   Mail ID *
                 </label>
                 <input
@@ -425,15 +419,15 @@ export default function AuthModal({
                   value={signupForm.email}
                   onChange={(e) => setSignupForm({ ...signupForm, email: e.target.value })}
                   placeholder="user@gmail.com"
-                  className={`w-full px-4 py-2.5 rounded-xl border text-sm outline-none transition ${
-                    formErrors.email ? "border-rose-500 bg-rose-50" : "border-slate-300 focus:ring-2 focus:ring-amber-500"
+                  className={`w-full px-4 py-2.5 rounded-xl border text-sm outline-none transition bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 ${
+                    formErrors.email ? "border-rose-500 bg-rose-50 dark:bg-rose-950/40" : "border-slate-300 dark:border-slate-700 focus:ring-2 focus:ring-amber-500"
                   }`}
                 />
-                {formErrors.email && <p className="text-[11px] text-rose-600 font-semibold mt-1">{formErrors.email}</p>}
+                {formErrors.email && <p className="text-[11px] text-rose-600 dark:text-rose-400 font-semibold mt-1">{formErrors.email}</p>}
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">
                   Phone Number *
                 </label>
                 <input
@@ -441,17 +435,17 @@ export default function AuthModal({
                   value={signupForm.phone}
                   onChange={(e) => setSignupForm({ ...signupForm, phone: e.target.value })}
                   placeholder="10-digit phone"
-                  className={`w-full px-4 py-2.5 rounded-xl border text-sm outline-none transition ${
-                    formErrors.phone ? "border-rose-500 bg-rose-50" : "border-slate-300 focus:ring-2 focus:ring-amber-500"
+                  className={`w-full px-4 py-2.5 rounded-xl border text-sm outline-none transition bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 ${
+                    formErrors.phone ? "border-rose-500 bg-rose-50 dark:bg-rose-950/40" : "border-slate-300 dark:border-slate-700 focus:ring-2 focus:ring-amber-500"
                   }`}
                 />
-                {formErrors.phone && <p className="text-[11px] text-rose-600 font-semibold mt-1">{formErrors.phone}</p>}
+                {formErrors.phone && <p className="text-[11px] text-rose-600 dark:text-rose-400 font-semibold mt-1">{formErrors.phone}</p>}
               </div>
             </div>
 
             {/* Field 7: How Related to Bandhakavi Hierarchy */}
             <div>
-              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1">
                 How Related to Bandhakavi Hierarchy? (Textbox) *
               </label>
               <textarea
@@ -459,14 +453,14 @@ export default function AuthModal({
                 value={signupForm.relation}
                 onChange={(e) => setSignupForm({ ...signupForm, relation: e.target.value })}
                 placeholder="e.g. Grandson of Bandhakavi Ramakrishna Sharma..."
-                className={`w-full px-4 py-2.5 rounded-xl border text-sm outline-none transition ${
-                  formErrors.relation ? "border-rose-500 bg-rose-50" : "border-slate-300 focus:ring-2 focus:ring-amber-500"
+                className={`w-full px-4 py-2.5 rounded-xl border text-sm outline-none transition bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 ${
+                  formErrors.relation ? "border-rose-500 bg-rose-50 dark:bg-rose-950/40" : "border-slate-300 dark:border-slate-700 focus:ring-2 focus:ring-amber-500"
                 }`}
               />
-              {formErrors.relation && <p className="text-[11px] text-rose-600 font-semibold mt-1">{formErrors.relation}</p>}
+              {formErrors.relation && <p className="text-[11px] text-rose-600 dark:text-rose-400 font-semibold mt-1">{formErrors.relation}</p>}
             </div>
 
-            <div className="bg-amber-50 p-3 rounded-xl border border-amber-200 text-[11px] text-amber-900 leading-relaxed">
+            <div className="bg-amber-50 dark:bg-amber-950/60 p-3 rounded-xl border border-amber-200 dark:border-amber-800 text-[11px] text-amber-900 dark:text-amber-300 leading-relaxed">
               <p className="font-semibold">Email Approval Dispatch:</p>
               Upon submission, notification emails will be sent to your Mail ID and to Admin (<strong>{ADMIN_EMAIL}</strong>).
             </div>
@@ -485,7 +479,7 @@ export default function AuthModal({
                   setModalNotification(null);
                   setAuthMode("login");
                 }}
-                className="text-xs text-amber-800 font-bold hover:underline"
+                className="text-xs text-amber-800 dark:text-amber-400 font-bold hover:underline"
               >
                 Already registered? Log In
               </button>
@@ -496,11 +490,11 @@ export default function AuthModal({
         {/* PENDING NOTIFICATION SCREEN */}
         {authMode === "pending" && (
           <div className="text-center space-y-4 py-4">
-            <div className="w-16 h-16 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center mx-auto">
+            <div className="w-16 h-16 rounded-full bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center mx-auto">
               <AlertCircle className="w-8 h-8" />
             </div>
-            <h4 className="text-lg font-bold text-slate-900">Awaiting Admin Approval</h4>
-            <p className="text-slate-600 text-xs leading-relaxed max-w-sm mx-auto">
+            <h4 className="text-lg font-bold text-slate-900 dark:text-slate-100">Awaiting Admin Approval</h4>
+            <p className="text-slate-600 dark:text-slate-300 text-xs leading-relaxed max-w-sm mx-auto">
               An email notification has been dispatched to your Mail ID and to the Master Admin (<strong>{ADMIN_EMAIL}</strong>). You will be able to log in once the admin approves your request.
             </p>
             <div className="pt-2">

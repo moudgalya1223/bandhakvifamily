@@ -9,7 +9,9 @@ import {
   ShieldCheck,
   LogIn,
   UserPlus,
-  LogOut
+  LogOut,
+  Sun,
+  Moon
 } from "lucide-react";
 import { UserProfile } from "@/types";
 
@@ -20,6 +22,8 @@ interface NavbarProps {
   onOpenAuth: (mode: "login" | "signup") => void;
   onLogout: () => void;
   pendingUsersCount: number;
+  isDarkMode: boolean;
+  toggleDarkMode: () => void;
 }
 
 export default function Navbar({
@@ -28,10 +32,16 @@ export default function Navbar({
   currentUser,
   onOpenAuth,
   onLogout,
-  pendingUsersCount
+  pendingUsersCount,
+  isDarkMode,
+  toggleDarkMode
 }: NavbarProps) {
   return (
-    <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-amber-200/60 shadow-sm">
+    <header className={`sticky top-0 z-40 backdrop-blur-md border-b transition-colors ${
+      isDarkMode
+        ? "bg-slate-900/90 border-slate-800 text-slate-100"
+        : "bg-white/90 border-amber-200/60 text-slate-800 shadow-sm"
+    }`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
         
         {/* Logo & Brand Title */}
@@ -43,10 +53,12 @@ export default function Navbar({
             <Trees className="w-7 h-7" />
           </div>
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-amber-900 via-amber-800 to-orange-800 bg-clip-text text-transparent">
+            <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-amber-500 via-orange-400 to-amber-300 bg-clip-text text-transparent">
               Bandhakavi
             </h1>
-            <p className="text-xs font-semibold tracking-wider text-amber-700/80 uppercase">
+            <p className={`text-xs font-semibold tracking-wider uppercase ${
+              isDarkMode ? "text-amber-400" : "text-amber-700/80"
+            }`}>
               Family Hierarchy & Trust Portal
             </p>
           </div>
@@ -59,6 +71,8 @@ export default function Navbar({
             className={`flex items-center space-x-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
               activeTab === "tree"
                 ? "bg-amber-600 text-white shadow-md shadow-amber-600/30"
+                : isDarkMode
+                ? "text-slate-300 hover:bg-slate-800 hover:text-amber-400"
                 : "text-slate-600 hover:bg-amber-100/60 hover:text-amber-900"
             }`}
           >
@@ -71,6 +85,8 @@ export default function Navbar({
             className={`flex items-center space-x-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
               activeTab === "moudgalya"
                 ? "bg-amber-600 text-white shadow-md shadow-amber-600/30"
+                : isDarkMode
+                ? "text-slate-300 hover:bg-slate-800 hover:text-amber-400"
                 : "text-slate-600 hover:bg-amber-100/60 hover:text-amber-900"
             }`}
           >
@@ -83,6 +99,8 @@ export default function Navbar({
             className={`flex items-center space-x-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
               activeTab === "trust"
                 ? "bg-amber-600 text-white shadow-md shadow-amber-600/30"
+                : isDarkMode
+                ? "text-slate-300 hover:bg-slate-800 hover:text-amber-400"
                 : "text-slate-600 hover:bg-amber-100/60 hover:text-amber-900"
             }`}
           >
@@ -95,6 +113,8 @@ export default function Navbar({
             className={`flex items-center space-x-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
               activeTab === "donate"
                 ? "bg-amber-600 text-white shadow-md shadow-amber-600/30"
+                : isDarkMode
+                ? "text-slate-300 hover:bg-slate-800 hover:text-amber-400"
                 : "text-slate-600 hover:bg-amber-100/60 hover:text-amber-900"
             }`}
           >
@@ -107,6 +127,8 @@ export default function Navbar({
             className={`flex items-center space-x-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
               activeTab === "admin"
                 ? "bg-purple-700 text-white shadow-md shadow-purple-700/30"
+                : isDarkMode
+                ? "text-purple-300 bg-purple-950/60 hover:bg-purple-900/80 border border-purple-800/60"
                 : "text-purple-700 bg-purple-50 hover:bg-purple-100"
             }`}
           >
@@ -120,19 +142,50 @@ export default function Navbar({
           </button>
         </nav>
 
-        {/* User Auth Profile Button */}
-        <div className="flex items-center space-x-3">
+        {/* Theme Toggle & Auth Buttons */}
+        <div className="flex items-center space-x-2 sm:space-x-3">
+          
+          {/* Dark/Light Mode Toggle Switch */}
+          <button
+            onClick={toggleDarkMode}
+            className={`p-2.5 rounded-xl transition flex items-center space-x-1.5 text-xs font-bold ${
+              isDarkMode
+                ? "bg-slate-800 text-amber-300 hover:bg-slate-700 border border-slate-700"
+                : "bg-amber-100 text-amber-900 hover:bg-amber-200 border border-amber-200"
+            }`}
+            title={isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
+          >
+            {isDarkMode ? (
+              <>
+                <Sun className="w-4 h-4 text-amber-400" />
+                <span className="hidden sm:inline">Light</span>
+              </>
+            ) : (
+              <>
+                <Moon className="w-4 h-4 text-slate-700" />
+                <span className="hidden sm:inline">Dark</span>
+              </>
+            )}
+          </button>
+
+          {/* User Auth Profile / Buttons */}
           {currentUser ? (
-            <div className="flex items-center space-x-3 bg-amber-50 border border-amber-200 py-1.5 px-3 rounded-2xl">
+            <div className={`flex items-center space-x-3 py-1.5 px-3 rounded-2xl border ${
+              isDarkMode ? "bg-slate-800/90 border-slate-700 text-slate-200" : "bg-amber-50 border-amber-200 text-amber-900"
+            }`}>
               <div className="text-right hidden sm:block">
-                <div className="text-xs font-bold text-amber-900">{currentUser.name}</div>
-                <div className="text-[10px] text-amber-700 capitalize font-medium">
+                <div className={`text-xs font-bold ${isDarkMode ? "text-amber-300" : "text-amber-900"}`}>
+                  {currentUser.name}
+                </div>
+                <div className={`text-[10px] capitalize font-medium ${isDarkMode ? "text-slate-400" : "text-amber-700"}`}>
                   {currentUser.relation || "Verified Member"}
                 </div>
               </div>
               <button
                 onClick={onLogout}
-                className="p-2 rounded-xl text-amber-800 hover:bg-amber-200/60 transition"
+                className={`p-2 rounded-xl transition ${
+                  isDarkMode ? "text-amber-400 hover:bg-slate-700" : "text-amber-800 hover:bg-amber-200/60"
+                }`}
                 title="Logout"
               >
                 <LogOut className="w-4 h-4" />
@@ -142,7 +195,11 @@ export default function Navbar({
             <div className="flex items-center space-x-2">
               <button
                 onClick={() => onOpenAuth("login")}
-                className="flex items-center space-x-1.5 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold text-amber-900 bg-amber-100 hover:bg-amber-200 transition"
+                className={`flex items-center space-x-1.5 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition ${
+                  isDarkMode
+                    ? "bg-slate-800 text-amber-300 hover:bg-slate-700 border border-slate-700"
+                    : "text-amber-900 bg-amber-100 hover:bg-amber-200"
+                }`}
               >
                 <LogIn className="w-4 h-4" />
                 <span>Log In</span>
@@ -160,11 +217,15 @@ export default function Navbar({
       </div>
 
       {/* Mobile Sub-Nav */}
-      <div className="md:hidden flex overflow-x-auto px-4 py-2 bg-amber-50/50 border-t border-amber-200/40 space-x-2 text-xs font-medium scrollbar-none">
+      <div className={`md:hidden flex overflow-x-auto px-4 py-2 border-t space-x-2 text-xs font-medium scrollbar-none ${
+        isDarkMode ? "bg-slate-900/90 border-slate-800" : "bg-amber-50/50 border-amber-200/40"
+      }`}>
         <button
           onClick={() => setActiveTab("tree")}
           className={`whitespace-nowrap px-3 py-1.5 rounded-lg ${
-            activeTab === "tree" ? "bg-amber-600 text-white font-bold" : "text-slate-700"
+            activeTab === "tree"
+              ? "bg-amber-600 text-white font-bold"
+              : isDarkMode ? "text-slate-300" : "text-slate-700"
           }`}
         >
           Family Tree
@@ -172,7 +233,9 @@ export default function Navbar({
         <button
           onClick={() => setActiveTab("moudgalya")}
           className={`whitespace-nowrap px-3 py-1.5 rounded-lg ${
-            activeTab === "moudgalya" ? "bg-amber-600 text-white font-bold" : "text-slate-700"
+            activeTab === "moudgalya"
+              ? "bg-amber-600 text-white font-bold"
+              : isDarkMode ? "text-slate-300" : "text-slate-700"
           }`}
         >
           Moudgalya Gotra
@@ -180,7 +243,9 @@ export default function Navbar({
         <button
           onClick={() => setActiveTab("trust")}
           className={`whitespace-nowrap px-3 py-1.5 rounded-lg ${
-            activeTab === "trust" ? "bg-amber-600 text-white font-bold" : "text-slate-700"
+            activeTab === "trust"
+              ? "bg-amber-600 text-white font-bold"
+              : isDarkMode ? "text-slate-300" : "text-slate-700"
           }`}
         >
           Trust Portal
@@ -188,7 +253,9 @@ export default function Navbar({
         <button
           onClick={() => setActiveTab("donate")}
           className={`whitespace-nowrap px-3 py-1.5 rounded-lg ${
-            activeTab === "donate" ? "bg-amber-600 text-white font-bold" : "text-slate-700"
+            activeTab === "donate"
+              ? "bg-amber-600 text-white font-bold"
+              : isDarkMode ? "text-slate-300" : "text-slate-700"
           }`}
         >
           Donate
@@ -198,7 +265,7 @@ export default function Navbar({
           className={`whitespace-nowrap px-3 py-1.5 rounded-lg ${
             activeTab === "admin"
               ? "bg-purple-700 text-white font-bold"
-              : "text-purple-800 bg-purple-100"
+              : isDarkMode ? "text-purple-300 bg-purple-950" : "text-purple-800 bg-purple-100"
           }`}
         >
           Admin ({pendingUsersCount})
